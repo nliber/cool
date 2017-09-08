@@ -1,7 +1,7 @@
-#ifndef COOL_PRETTY_NAME_HPP_
-#define COOL_PRETTY_NAME_HPP_
+#ifndef COOL_PRETTY_NAME_H_
+#define COOL_PRETTY_NAME_H_
 
-#include <boost/utility/string_ref.hpp>
+#include <string_view>
 
 namespace cool
 {
@@ -12,38 +12,39 @@ namespace cool
     //  (static) type passed into it, after the top level const/volatile
     //  qualifiers are removed.
     //
-    //  It is implemented as a type derived from string_ref and it has whole
-    //  program lifetime.
     ///////////////////////////////////////////////////////////////////////////
-    struct pretty_name : boost::string_ref
+    
+    class pretty_name : public std::string_view
     {
-#ifdef __clang__
         template<typename T>
-        constexpr explicit pretty_name(const T &) noexcept
-        : boost::string_ref(       __PRETTY_FUNCTION__ + sizeof "cool::pretty_name::pretty_name(const T &) [T = " - 1,
-                            sizeof __PRETTY_FUNCTION__ - sizeof "cool::pretty_name::pretty_name(const T &) [T = " - sizeof "]" + 1)
+        static auto
+        constexpr clang_v_gcc(const volatile T&) noexcept
+        {
+            return sizeof __PRETTY_FUNCTION__ - sizeof "static auto";
+        }
+
+        static auto
+        constexpr offset_name() noexcept
+        {
+            int i{};
+            return clang_v_gcc(i) - sizeof "int]";
+        }
+
+    public:
+        template<typename T>
+        constexpr pretty_name(const volatile T&) noexcept
+        : std::string_view{       __PRETTY_FUNCTION__ + offset_name(),
+                           sizeof __PRETTY_FUNCTION__ - offset_name() - sizeof "]"}
         {}
 
         template<typename T>
-        constexpr explicit pretty_name(const volatile T &) noexcept
-        : boost::string_ref(       __PRETTY_FUNCTION__ + sizeof "cool::pretty_name::pretty_name(const volatile T &) [T = " - 1,
-                            sizeof __PRETTY_FUNCTION__ - sizeof "cool::pretty_name::pretty_name(const volatile T &) [T = " - sizeof "]" + 1)
+        constexpr pretty_name(const volatile T&& t) noexcept
+        : pretty_name{t}
         {}
-#else /* !defined(__clang__) */
-        template<typename T>
-        constexpr explicit pretty_name(const T&) noexcept
-        : boost::string_ref(       __PRETTY_FUNCTION__ + sizeof "constexpr cool::pretty_name::pretty_name(const T&) [with T = " - 1,
-                            sizeof __PRETTY_FUNCTION__ - sizeof "constexpr cool::pretty_name::pretty_name(const T&) [with T = " - sizeof "]" + 1)
-        {}
-
-        template<typename T>
-        constexpr explicit pretty_name(const volatile T&) noexcept
-        : boost::string_ref(       __PRETTY_FUNCTION__ + sizeof "constexpr cool::pretty_name::pretty_name(const volatile T&) [with T = " - 1,
-                            sizeof __PRETTY_FUNCTION__ - sizeof "constexpr cool::pretty_name::pretty_name(const volatile T&) [with T = " - sizeof "]" + 1)
-        {}
-#endif  /* !defined(__clang__) */
     };
+
 } // cool namespace
 
-#endif /* COOL_PRETTY_NAME_HPP_ */
+
+#endif /* COOL_PRETTY_NAME_H_ */
 
