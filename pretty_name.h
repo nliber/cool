@@ -18,16 +18,16 @@ namespace cool
     {
         template<typename T>
         static auto
-        constexpr clang_v_gcc(const volatile T&) noexcept
+        constexpr sizeof_pyfn(const volatile T&) noexcept
         {
-            return sizeof __PRETTY_FUNCTION__ - sizeof "static auto";
+            return sizeof __PRETTY_FUNCTION__ - sizeof "static auto sizeof_pyfn" + sizeof "pretty_name";
         }
 
         static auto
         constexpr offset_name() noexcept
         {
             int i{};
-            return clang_v_gcc(i) - sizeof "int]";
+            return sizeof_pyfn(i) - sizeof "int]";
         }
 
     public:
