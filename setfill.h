@@ -15,6 +15,9 @@ namespace cool
     class setfill
     {
     public:
+        using char_type = charT;
+        using traits_type = traits;
+
         setfill() = default;
 
         explicit setfill(charT f)

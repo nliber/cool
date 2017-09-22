@@ -12,13 +12,15 @@ namespace cool
     class setprecision
     {
     public:
+        using streamsize = std::streamsize;
+
         setprecision() = default;
 
-        explicit setprecision(std::streamsize p)
+        explicit setprecision(streamsize p)
         : m_newPrecision{p}
         {}
 
-        explicit setprecision(std::streamsize p, std::ios_base& ios)
+        explicit setprecision(streamsize p, std::ios_base& ios)
         : m_ios{&ios}
         , m_newPrecision{p}
         , m_oldPrecision{ios.precision(p)}
@@ -67,9 +69,9 @@ namespace cool
             m_ios = &ios;
         }
 
-        mutable std::ios_base*         m_ios = nullptr;
-        std::optional<std::streamsize> m_newPrecision;
-        mutable std::streamsize        m_oldPrecision;
+        mutable std::ios_base*    m_ios = nullptr;
+        std::optional<streamsize> m_newPrecision;
+        mutable streamsize        m_oldPrecision;
 
     };
 } // cool namespace
