@@ -18,17 +18,18 @@ namespace cool
         setfill() = default;
 
         explicit setfill(charT f)
-        : m_fill{f}
+        : m_newFill{f}
         {}
 
         explicit setfill(charT f, std::basic_ios<charT, traits>& ios)
-        : m_fill{ios.fill(f)}
-        , m_ios{&ios}
+        : m_ios{&ios}
+        , m_newFill{f}
+        , m_oldFill{ios.fill(f)}
         {}
 
         explicit setfill(std::basic_ios<charT, traits>& ios)
-        : m_fill{ios.fill()}
-        , m_ios{&ios}
+        : m_ios{&ios}
+        , m_oldFill{ios.fill()}
         {}
 
         explicit setfill(std::basic_ios<charT, traits>& ios, charT f)
@@ -43,7 +44,7 @@ namespace cool
         ~setfill()
         {
             if (m_ios)
-                m_ios->fill(*m_fill);
+                m_ios->fill(m_oldFill);
         }
 
         friend std::istream& operator>>(std::istream& is, setfill& that)
@@ -63,16 +64,14 @@ namespace cool
         {
             assert(!m_ios);
 
-            if (m_fill)
-                m_fill = ios.fill(*m_fill);
-            else
-                m_fill = ios.fill();
-
+            m_oldFill = m_newFill ? ios.fill(*m_newFill) : ios.fill();
             m_ios = &ios;
         }
 
-        mutable std::optional<charT>           m_fill;
         mutable std::basic_ios<charT, traits>* m_ios = nullptr;
+        std::optional<charT>                   m_newFill;
+        mutable charT                          m_oldFill;
+
     };
 
     setfill()                  -> setfill<char>;
