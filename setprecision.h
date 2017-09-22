@@ -1,0 +1,78 @@
+#ifndef COOL_SETPRECISION_H_
+#define COOL_SETPRECISION_H_
+
+#include <cassert>
+#include <ios>
+#include <istream>
+#include <optional>
+#include <ostream>
+
+namespace cool
+{
+    class setprecision
+    {
+    public:
+        setprecision() = default;
+
+        explicit setprecision(std::streamsize p)
+        : m_newPrecision{p}
+        {}
+
+        explicit setprecision(std::streamsize p, std::ios_base& ios)
+        : m_ios{&ios}
+        , m_newPrecision{p}
+        , m_oldPrecision{ios.precision(p)}
+        {}
+
+        explicit setprecision(std::ios_base& ios)
+        : m_ios{&ios}
+        , m_oldPrecision{ios.precision()}
+        {}
+
+        explicit setprecision(std::ios_base& ios, std::streamsize p)
+        : setprecision{p, ios}
+        {}
+
+        setprecision(setprecision const&)            = delete;
+        setprecision& operator=(setprecision const&) = delete;
+        setprecision& operator=(setprecision&&)      = delete;
+        setprecision(setprecision&&)                 = delete;
+
+        ~setprecision()
+        {
+            if (m_ios)
+                m_ios->precision(m_oldPrecision);
+        }
+
+        template<typename charT, typename traits>
+        friend std::istream& operator>>(std::basic_istream<charT, traits>& is, setprecision& that)
+        {
+            that.precision(is);
+            return is;
+        }
+
+        template<typename charT, typename traits>
+        friend std::ostream& operator<<(std::basic_ostream<charT, traits>& os, setprecision const& that)
+        {
+            that.precision(os);
+            return os;
+        }
+
+    private:
+        void precision(std::ios_base& ios) const
+        {
+            assert(!m_ios);
+
+            m_oldPrecision = m_newPrecision ? ios.precision(*m_newPrecision) : ios.precision();
+            m_ios = &ios;
+        }
+
+        mutable std::ios_base*         m_ios = nullptr;
+        std::optional<std::streamsize> m_newPrecision;
+        mutable std::streamsize        m_oldPrecision;
+
+    };
+} // cool namespace
+
+#endif /* COOL_SETPRECISION_H_ */
+
