@@ -59,11 +59,12 @@ namespace cool
         {
             assert(!m_ios);
 
-            m_flags = ios.setf(!m_base       ? ios.flags()        :
-                                m_base ==  8 ? std::ios_base::oct :
-                                m_base == 10 ? std::ios_base::dec :
-                                m_base == 16 ? std::ios_base::hex :
-                                std::ios_base::fmtflags{}         , std::ios_base::basefield);
+            m_flags = m_base ? ios.setf(m_base ==  8 ? std::ios_base::oct :
+                                        m_base == 10 ? std::ios_base::dec :
+                                        m_base == 16 ? std::ios_base::hex :
+                                        std::ios_base::fmtflags{}         , std::ios_base::basefield) :
+                               ios.flags();
+
             m_ios = &ios;
         }
 
