@@ -47,14 +47,14 @@ namespace cool
         }
 
         template<typename charT, typename traits>
-        friend std::istream& operator>>(std::basic_istream<charT, traits>& is, setprecision& that)
+        friend auto& operator>>(std::basic_istream<charT, traits>& is, setprecision& that)
         {
             that.precision(is);
             return is;
         }
 
         template<typename charT, typename traits>
-        friend std::ostream& operator<<(std::basic_ostream<charT, traits>& os, setprecision const& that)
+        friend auto& operator<<(std::basic_ostream<charT, traits>& os, setprecision const& that)
         {
             that.precision(os);
             return os;
