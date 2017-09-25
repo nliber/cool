@@ -25,19 +25,15 @@ namespace cool
         {}
 
         explicit setfill(charT f, std::basic_ios<charT, traits>& ios)
-        : m_ios{&ios}
-        , m_newFill{f}
-        , m_oldFill{ios.fill(f)}
-        {}
+        : m_newFill{f}
+        { fill(ios); }
 
         explicit setfill(std::basic_ios<charT, traits>& ios)
-        : m_ios{&ios}
-        , m_oldFill{ios.fill()}
-        {}
+        { fill(ios); }
 
         explicit setfill(std::basic_ios<charT, traits>& ios, charT f)
-        : setfill{f, ios}
-        {}
+        : m_newFill{f}
+        { fill(ios); }
 
         setfill(setfill const&)            = delete;
         setfill& operator=(setfill const&) = delete;

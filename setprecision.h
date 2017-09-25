@@ -21,19 +21,15 @@ namespace cool
         {}
 
         explicit setprecision(streamsize p, std::ios_base& ios)
-        : m_ios{&ios}
-        , m_newPrecision{p}
-        , m_oldPrecision{ios.precision(p)}
-        {}
+        : m_newPrecision{p}
+        { precision(ios); }
 
         explicit setprecision(std::ios_base& ios)
-        : m_ios{&ios}
-        , m_oldPrecision{ios.precision()}
-        {}
+        { precision(ios); }
 
         explicit setprecision(std::ios_base& ios, std::streamsize p)
-        : setprecision{p, ios}
-        {}
+        : m_newPrecision{p}
+        { precision(ios); }
 
         setprecision(setprecision const&)            = delete;
         setprecision& operator=(setprecision const&) = delete;
