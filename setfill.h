@@ -26,14 +26,14 @@ namespace cool
 
         explicit setfill(charT f, std::basic_ios<charT, traits>& ios)
         : m_newFill{f}
-        { fill(ios); }
+        { set(ios); }
 
         explicit setfill(std::basic_ios<charT, traits>& ios)
-        { fill(ios); }
+        { set(ios); }
 
         explicit setfill(std::basic_ios<charT, traits>& ios, charT f)
         : m_newFill{f}
-        { fill(ios); }
+        { set(ios); }
 
         setfill(setfill const&)            = delete;
         setfill& operator=(setfill const&) = delete;
@@ -48,18 +48,18 @@ namespace cool
 
         friend auto& operator>>(std::basic_istream<charT, traits>& is, setfill& that)
         {
-            that.fill(is);
+            that.set(is);
             return is;
         }
 
         friend auto& operator<<(std::basic_ostream<charT, traits>& os, setfill const& that)
         {
-            that.fill(os);
+            that.set(os);
             return os;
         }
 
     private:
-        void fill(std::basic_ios<charT, traits>& ios) const
+        void set(std::basic_ios<charT, traits>& ios) const
         {
             assert(!m_ios);
 

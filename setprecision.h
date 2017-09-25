@@ -22,14 +22,14 @@ namespace cool
 
         explicit setprecision(streamsize p, std::ios_base& ios)
         : m_newPrecision{p}
-        { precision(ios); }
+        { set(ios); }
 
         explicit setprecision(std::ios_base& ios)
-        { precision(ios); }
+        { set(ios); }
 
         explicit setprecision(std::ios_base& ios, std::streamsize p)
         : m_newPrecision{p}
-        { precision(ios); }
+        { set(ios); }
 
         setprecision(setprecision const&)            = delete;
         setprecision& operator=(setprecision const&) = delete;
@@ -45,19 +45,19 @@ namespace cool
         template<typename charT, typename traits>
         friend auto& operator>>(std::basic_istream<charT, traits>& is, setprecision& that)
         {
-            that.precision(is);
+            that.set(is);
             return is;
         }
 
         template<typename charT, typename traits>
         friend auto& operator<<(std::basic_ostream<charT, traits>& os, setprecision const& that)
         {
-            that.precision(os);
+            that.set(os);
             return os;
         }
 
     private:
-        void precision(std::ios_base& ios) const
+        void set(std::ios_base& ios) const
         {
             assert(!m_ios);
 
