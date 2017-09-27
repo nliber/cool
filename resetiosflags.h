@@ -55,7 +55,7 @@ namespace cool
         {
             assert(!m_ios);
 
-            m_flags = ios.unsetf(m_mask);
+            m_flags = ios.setf(fmtflags{}, m_mask);
             m_ios   = &ios;
         }
 
