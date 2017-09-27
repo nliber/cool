@@ -33,7 +33,7 @@ namespace cool
         ~setiosflags()
         {
             if (m_ios)
-                m_ios->setf(fmtflags{}, m_mask & ~m_flags);
+                m_ios->setf(m_flags, m_mask);
         }
 
         template<typename charT, typename traits>

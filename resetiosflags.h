@@ -33,7 +33,7 @@ namespace cool
         ~resetiosflags()
         {
             if (m_ios)
-                m_ios->setf(m_mask & m_flags);
+                m_ios->setf(m_flags, m_mask);
         }
 
         template<typename charT, typename traits>
@@ -55,7 +55,7 @@ namespace cool
         {
             assert(!m_ios);
 
-            m_flags = ios.setf(fmtflags{}, m_mask);
+            m_flags = ios.unsetf(m_mask);
             m_ios   = &ios;
         }
 
