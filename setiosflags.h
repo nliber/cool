@@ -37,7 +37,7 @@ namespace cool
         }
 
         template<typename charT, typename traits>
-        friend auto& operator>>(std::basic_istream<charT, traits>& is, setiosflags& that)
+        friend auto& operator>>(std::basic_istream<charT, traits>& is, setiosflags const& that)
         {
             that.set(is);
             return is;

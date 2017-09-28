@@ -46,7 +46,7 @@ namespace cool
                 m_ios->fill(m_oldFill);
         }
 
-        friend auto& operator>>(std::basic_istream<charT, traits>& is, setfill& that)
+        friend auto& operator>>(std::basic_istream<charT, traits>& is, setfill const& that)
         {
             that.set(is);
             return is;
