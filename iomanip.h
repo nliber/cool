@@ -383,6 +383,61 @@ namespace cool
         mutable fmtflags        m_oldFlags;
     };
 
+
+    template<typename charT, typename traits = std::char_traits<charT>>
+    class setiomanip
+    {
+    public:
+        setiomanip() = default;
+
+        explicit setiomanip(std::basic_ios<charT, traits>& ios)
+        { save(ios); }
+
+        setiomanip(setiomanip const&)            = delete;
+        setiomanip& operator=(setiomanip const&) = delete;
+        setiomanip& operator=(setiomanip&&)      = delete;
+        setiomanip(setiomanip&&)                 = delete;
+
+        ~setiomanip()
+        {
+            if (m_ios)
+            {
+                m_ios->fill(m_fill);
+                m_ios->flags(m_flags);
+                m_ios->precision(m_precision);
+            }
+        }
+
+        friend auto& operator>>(std::basic_istream<charT, traits>& is, setiomanip const& that)
+        {
+            that.save(is);
+            return is;
+        }
+
+        friend auto& operator<<(std::basic_ostream<charT, traits>& os, setiomanip const& that)
+        {
+            that.save(os);
+            return os;
+        }
+
+    private:
+        void save(std::basic_ios<charT, traits>& ios) const
+        {
+            assert(!m_ios);
+
+            m_precision = ios.precision();
+            m_flags     = ios.flags();
+            m_fill      = ios.fill();
+            m_ios       = &ios;
+        }
+
+        mutable std::basic_ios<charT, traits>* m_ios = nullptr;
+        mutable std::streamsize                m_precision;
+        mutable std::ios_base::fmtflags        m_flags;
+        mutable charT                          m_fill;
+    };
+
+    setiomanip() -> setiomanip<char>;
 } // cool namespace
 
 #endif /* COOL_IOMANIP_H_ */
