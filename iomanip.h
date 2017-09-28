@@ -8,6 +8,60 @@
 #include <ostream>
 #include <string>
 
+///////////////////////////////////////////////////////////////////////////////
+//
+// These io manipulators save off the old state when streamed and restore that
+// state when destructed.
+//
+// Those which take a parameter set the new state after saving off the old
+// state.
+//
+// These correspond to the manipulators in <iomanip>:
+//
+//  resetiosflags(std::ios_base::fmtflags)
+//
+//  setiosflags(std::ios_base::fmtflags)
+//
+//  setbase()
+//  setbase(int)
+//
+//  template<typename charT, typename traits> setfill()
+//  template<typename charT, typename traits> setfill(charT)
+//
+//  setprecision()
+//  setprecision(std::streamsize)
+//
+//
+// These are new io manipulators:
+//
+//  setflags saves and restores all flags:
+//  setflags()
+//  setflags(std::ios_base::fmtflags)
+//
+//  setiomanip saves and restores precision, flags and fill
+//  template<typename charT, typename traits> setiomanip()
+//
+//
+// While they are intended to be used as one-liners, you can declare them for
+// multiline streaming operations.  They all take an optional stream parameter
+// if you wish to set them up when you declare them.
+//
+// There are deduction guides to make the syntax more regular for the templated
+// classes, but deduction guides are a fairly new C++17 feature and compilers
+// (gcc7 and clang5) do not yet agree on their usage.
+//
+//
+// Example:
+//
+//  std::cout << cool::setiomanip{} << std::boolalpha << false << ' ' << true << '\n';
+//  std::cout << false << ' ' << true << '\n';
+//
+//  Outputs:
+//  false true
+//  0 1
+//
+///////////////////////////////////////////////////////////////////////////////
+
 namespace cool
 {
     class resetiosflags
