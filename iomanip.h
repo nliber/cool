@@ -320,6 +320,69 @@ namespace cool
         mutable streamsize        m_oldPrecision;
 
     };
+
+
+    class setflags
+    {
+    public:
+        using fmtflags = std::ios::fmtflags;
+
+        setflags() = default;
+
+        explicit setflags(fmtflags f)
+        : m_newFlags{f}
+        {}
+
+        explicit setflags(fmtflags f, std::ios_base& ios)
+        : m_newFlags{f}
+        { save(ios); }
+
+        explicit setflags(std::ios_base& ios)
+        { save(ios); }
+
+        explicit setflags(std::ios_base& ios, fmtflags f)
+        : m_newFlags{f}
+        { save(ios); }
+
+        setflags(setflags const&)            = delete;
+        setflags& operator=(setflags const&) = delete;
+        setflags& operator=(setflags&&)      = delete;
+        setflags(setflags&&)                 = delete;
+
+        ~setflags()
+        {
+            if (m_ios)
+                m_ios->flags(m_oldFlags);
+        }
+
+        template<typename charT, typename traits>
+        friend auto& operator>>(std::basic_istream<charT, traits>& is, setflags const& that)
+        {
+            that.save(is);
+            return is;
+        }
+
+        template<typename charT, typename traits>
+        friend auto& operator<<(std::basic_ostream<charT, traits>& os, setflags const& that)
+        {
+            that.save(os);
+            return os;
+        }
+
+    private:
+        void save(std::ios_base& ios) const
+        {
+            assert(!m_ios);
+
+            m_oldFlags = m_newFlags ? ios.flags(*m_newFlags) : ios.flags();
+            m_ios = &ios;
+        }
+
+        mutable std::ios_base*  m_ios = nullptr;
+        std::optional<fmtflags> m_newFlags;
+        mutable fmtflags        m_oldFlags;
+    };
+
 } // cool namespace
 
 #endif /* COOL_IOMANIP_H_ */
