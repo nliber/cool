@@ -442,6 +442,9 @@ namespace cool
     class setiomanip
     {
     public:
+        using char_type = charT;
+        using traits_type = traits;
+
         setiomanip() = default;
 
         explicit setiomanip(std::basic_ios<charT, traits>& ios)
