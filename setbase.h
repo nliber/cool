@@ -23,11 +23,11 @@ namespace cool
 
         explicit setbase(int base, std::ios_base& ios)
         : m_base{base}
-        { set(ios); }
+        { save(ios); }
 
         explicit setbase(std::ios_base& ios, int base)
         : m_base{base}
-        { set(ios); }
+        { save(ios); }
 
         setbase(setbase const&)            = delete;
         setbase& operator=(setbase const&) = delete;
@@ -43,19 +43,19 @@ namespace cool
         template<typename charT, typename traits>
         friend auto& operator>>(std::basic_istream<charT, traits>& is, setbase const& that)
         {
-            that.set(is);
+            that.save(is);
             return is;
         }
 
         template<typename charT, typename traits>
         friend auto& operator<<(std::basic_ostream<charT, traits>& os, setbase const& that)
         {
-            that.set(os);
+            that.save(os);
             return os;
         }
 
     private:
-        void set(std::ios_base& ios) const
+        void save(std::ios_base& ios) const
         {
             assert(!m_ios);
 

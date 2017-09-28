@@ -19,11 +19,11 @@ namespace cool
 
         explicit setiosflags(fmtflags mask, std::ios_base& ios)
         : m_mask{mask}
-        { set(ios); }
+        { save(ios); }
 
         explicit setiosflags(std::ios_base& ios, fmtflags mask)
         : m_mask{mask}
-        { set(ios); }
+        { save(ios); }
 
         setiosflags(setiosflags const&)            = delete;
         setiosflags& operator=(setiosflags const&) = delete;
@@ -39,19 +39,19 @@ namespace cool
         template<typename charT, typename traits>
         friend auto& operator>>(std::basic_istream<charT, traits>& is, setiosflags const& that)
         {
-            that.set(is);
+            that.save(is);
             return is;
         }
 
         template<typename charT, typename traits>
         friend auto& operator<<(std::basic_ostream<charT, traits>& os, setiosflags const& that)
         {
-            that.set(os);
+            that.save(os);
             return os;
         }
 
     private:
-        void set(std::ios_base& ios) const
+        void save(std::ios_base& ios) const
         {
             assert(!m_ios);
 

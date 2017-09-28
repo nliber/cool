@@ -19,11 +19,11 @@ namespace cool
 
         explicit resetiosflags(fmtflags mask, std::ios_base& ios)
         : m_mask{mask}
-        { reset(ios); }
+        { save(ios); }
 
         explicit resetiosflags(std::ios_base& ios, fmtflags mask)
         : m_mask{mask}
-        { reset(ios); }
+        { save(ios); }
 
         resetiosflags(resetiosflags const&)            = delete;
         resetiosflags& operator=(resetiosflags const&) = delete;
@@ -39,19 +39,19 @@ namespace cool
         template<typename charT, typename traits>
         friend auto& operator>>(std::basic_istream<charT, traits>& is, resetiosflags const& that)
         {
-            that.reset(is);
+            that.save(is);
             return is;
         }
 
         template<typename charT, typename traits>
         friend auto& operator<<(std::basic_ostream<charT, traits>& os, resetiosflags const& that)
         {
-            that.reset(os);
+            that.save(os);
             return os;
         }
 
     private:
-        void reset(std::ios_base& ios) const
+        void save(std::ios_base& ios) const
         {
             assert(!m_ios);
 
