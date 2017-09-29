@@ -35,11 +35,20 @@
 // These are new io manipulators:
 //
 //  setflags saves and restores all flags:
+//
 //  setflags()
 //  setflags(std::ios_base::fmtflags)
 //
 //  setiomanip saves and restores precision, flags and fill
+//  If you pass in true, then the following are set after save
+//  (values from <http://eel.is/c++draft/basic.ios.cons>):
+//
+//      precision = 6
+//      flags     = skipws | dec
+//      fill      = widen(' ')
+//
 //  template<typename charT, typename traits> setiomanip()
+//  template<typename charT, typename traits> setiomanip(bool)
 //
 //
 // While they are intended to be used as one-liners, you can declare them for
@@ -53,7 +62,7 @@
 //
 // Example:
 //
-//  std::cout << cool::setiomanip{} << std::boolalpha << false << ' ' << true << '\n';
+//  std::cout << cool::setiomanip(true) << std::boolalpha << false << ' ' << true << '\n';
 //  std::cout << false << ' ' << true << '\n';
 //
 //  Outputs:
@@ -305,12 +314,19 @@ namespace cool
 
     };
 
-    setfill()                  -> setfill<char>;
+    setfill()                                               -> setfill<char>;
 
-    explicit setfill(char)     -> setfill<char>;
-    explicit setfill(wchar_t)  -> setfill<wchar_t>;
-    explicit setfill(char16_t) -> setfill<char16_t>;
-    explicit setfill(char32_t) -> setfill<char32_t>;
+    template<typename charT>
+    explicit setfill(charT)                                 -> setfill<charT>;
+
+    template<typename charT, typename traits>
+    explicit setfill(charT, std::basic_ios<charT, traits>&) -> setfill<charT, traits>;
+
+    template<typename charT, typename traits>
+    explicit setfill(std::basic_ios<charT, traits>&)        -> setfill<charT, traits>;
+
+    template<typename charT, typename traits>
+    explicit setfill(std::basic_ios<charT, traits>&, charT) -> setfill<charT, traits>;
 
 
     class setprecision
@@ -442,12 +458,24 @@ namespace cool
     class setiomanip
     {
     public:
-        using char_type = charT;
+        using char_type   = charT;
         using traits_type = traits;
 
         setiomanip() = default;
 
+        explicit setiomanip(bool init)
+        : m_init{init}
+        {}
+
+        explicit setiomanip(bool init, std::basic_ios<charT, traits>& ios)
+        : m_init{init}
+        { save(ios); }
+
         explicit setiomanip(std::basic_ios<charT, traits>& ios)
+        { save(ios); }
+
+        explicit setiomanip(std::basic_ios<charT, traits>& ios, bool init)
+        : m_init{init}
         { save(ios); }
 
         setiomanip(setiomanip const&)            = delete;
@@ -482,9 +510,10 @@ namespace cool
         {
             assert(!m_ios);
 
-            m_precision = ios.precision();
-            m_flags     = ios.flags();
-            m_fill      = ios.fill();
+            m_precision = m_init ? ios.precision(6)                                      : ios.precision();
+            m_flags     = m_init ? ios.flags(std::ios_base::skipws | std::ios_base::dec) : ios.flags();
+            m_fill      = m_init ? ios.fill(ios.widen(' '))                              : ios.fill();
+
             m_ios       = &ios;
         }
 
@@ -492,9 +521,20 @@ namespace cool
         mutable std::streamsize                m_precision;
         mutable std::ios_base::fmtflags        m_flags;
         mutable charT                          m_fill;
+        bool                                   m_init = false;
     };
 
-    setiomanip() -> setiomanip<char>;
+    setiomanip()                                              -> setiomanip<char>;
+    explicit setiomanip(bool)                                 -> setiomanip<char>;
+
+    template<typename charT, typename traits>
+    explicit setiomanip(bool, std::basic_ios<charT, traits>&) -> setiomanip<charT, traits>;
+
+    template<typename charT, typename traits>
+    explicit setiomanip(std::basic_ios<charT, traits>&)       -> setiomanip<charT, traits>;
+
+    template<typename charT, typename traits>
+    explicit setiomanip(std::basic_ios<charT, traits>&, bool) -> setiomanip<charT, traits>;
 } // cool namespace
 
 #endif /* COOL_IOMANIP_H_ */
