@@ -38,7 +38,9 @@ namespace cool
         time_point start = clock::now();
     };
 
+#if __cplusplus >= 201703L
     Stopwatch() -> Stopwatch<>;
+#endif  // C++17
 
 } // cool namespace
 
