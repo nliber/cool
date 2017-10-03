@@ -2,17 +2,28 @@
 #define COOL_CHRONO_H_
 
 #include <cool/ratio.h>
+#include <array>
 #include <chrono>
 #include <ctime>
 #include <ostream>
 
 ///////////////////////////////////////////////////////////////////////////////
-// A stream inserter operator for
-//  std::chrono::duration
+// Stream inserters operator for things in std::chrono
+//
+// std::chrono::duration
 //
 // Usage:
 //  using cool::chrono::duration::operator<<;
 //  std::cout << std::chrono::hours{2} << std::endl;  // outputs "2 hours"
+//
+//
+// std::chrono::system_clock
+//
+// Usage:
+//  using cool::chrono::system_clock::operator<<;
+//  std::cout << std::chrono::system_clock{} << std::endl; // outputs "Thu, 12 Aug 1965 12:59:00 -0500"
+//
+//  now() - returns a '\0'-terminated array containing the formatted system_clock
 ///////////////////////////////////////////////////////////////////////////////
 namespace cool { namespace chrono {
 namespace duration {
@@ -39,8 +50,7 @@ namespace duration {
 
 namespace system_clock
 {
-    inline
-    std::ostream& operator<<(std::ostream& os, std::chrono::system_clock)
+    inline auto now()
     {
         std::chrono::system_clock::time_point tp{std::chrono::system_clock::now()};
         std::time_t                           timeT{std::chrono::system_clock::to_time_t(tp)};
@@ -48,8 +58,15 @@ namespace system_clock
         struct tm                             tm;
         localtime_r(&timeT, &tm);
 
-        return os << asctime(&tm);
+        std::array<char, sizeof "Thu, 12 Aug 1965 12:59:00 -0500"> formatted;
+        strftime(formatted.data(), formatted.size(), "%a, %d %b %Y %T %z", &tm);
+
+        return formatted;
     }
+
+    inline
+    std::ostream& operator<<(std::ostream& os, std::chrono::system_clock)
+    { return os << cool::chrono::system_clock::now().data(); }
 } // system_clock namespace
 
 } /* chrono namespace */ } /* cool namespace */
