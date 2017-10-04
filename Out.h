@@ -2,6 +2,7 @@
 #define COOL_OUT_H_
 
 #include <cool/pretty_name.h>
+#include <cool/Spacer.h>
 #include <iterator>
 #include <ostream>
 #include <string>
@@ -16,11 +17,9 @@ namespace cool
         struct is_ostream_insertable
         : std::false_type {};
 
-        // This definition uses the function and not the expression
-        //  to work correctly with enum non-classes
         template<typename T, typename charT, typename traits>
         struct is_ostream_insertable<T, charT, traits,
-                                     std::void_t<decltype(operator<<(std::declval<std::basic_ostream<charT, traits>&>(), std::declval<T>()))>>
+                                     std::void_t<decltype(std::declval<std::basic_ostream<charT, traits>&>() << std::declval<T>())>>
         : std::true_type {};
 
         template<typename T, typename = void>
@@ -47,12 +46,11 @@ namespace cool
         void Range(std::ostream& os) const
         {
             os << +std::size(m_ref) << '[';
-            const char* comma = "";
+
+            cool::Spacer comma(',');
             for (auto&& v : m_ref)
-            {
                 os << comma << cool::Out(v);
-                comma = ",";
-            }
+
             os << ']';
         }
 
