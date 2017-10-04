@@ -83,9 +83,7 @@ namespace cool
         constexpr const auto& middle()    const noexcept { return std::get<0>(m_separators); }
         constexpr const auto& ending()    const noexcept { return std::get<2>(m_separators); }
 
-        // No need to pass Spacer by const reference,
-        //  since it is never intended to be a temporary
-        friend ostream_type& operator<<(ostream_type& os, Spacer& that)
+        friend ostream_type& operator<<(ostream_type& os, Spacer const& that)
         {
             if (that.m_os)
             {
@@ -106,8 +104,8 @@ namespace cool
         }
 
     private:
-        ostream_type*    m_os = nullptr;
-        const Separators m_separators;
+        mutable ostream_type* m_os = nullptr;
+        Separators            m_separators;
     };
 
     template<typename M>
