@@ -11,6 +11,8 @@
 //
 // Spacer
 //  Utility class for "spacing" through elements when looping
+//  Note:  Because of deduction guides, this usually has
+//  reference semantics for l-values.
 //
 // Template parameters (note: the order of parameters is funky):
 //  charT - the value type of the ostream
@@ -20,15 +22,38 @@
 //  End - the type to be streamed on destruction
 //      (only relevant when at least one separator streamed)
 //
+// Constructors:
+//  Spacer(Middle m)
+//  Spacer(Beginning b, Middle m)
+//  Spacer(Beginning b, Middle m, End e)
+//
+// Usage:
+//  {
+//      cool::Spacer comma('[', ", ", "]\n");
+//      std::cout << comma << 1 << comma << 2 << comma << 3;
+//  } // outputs: [1, 2, 3]
 ///////////////////////////////////////////////////////////////////////////////
 
 namespace cool
 {
+    class NullIOStream
+    {
+        template<typename charT, typename traits>
+        friend std::basic_ostream<charT, traits>&
+        operator<<(std::basic_ostream<charT, traits>& os, NullIOStream)
+        { return os; }
+
+        template<typename charT, typename traits>
+        friend std::basic_istream<charT, traits>&
+        operator>>(std::basic_ostream<charT, traits>& is, NullIOStream)
+        { return is; }
+    };
+
     template<typename charT     = char,
              typename traits    = std::char_traits<charT>,
-             typename Middle    = std::basic_string_view<charT, traits>,
-             typename Beginning = std::basic_string_view<charT, traits>,
-             typename End       = std::basic_string_view<charT, traits>>
+             typename Middle    = NullIOStream,
+             typename Beginning = NullIOStream,
+             typename End       = NullIOStream>
     class Spacer
     {
     public:
