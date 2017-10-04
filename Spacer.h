@@ -79,9 +79,9 @@ namespace cool
         Spacer& operator=(Spacer&&)      = delete;
         Spacer(Spacer&&)                 = delete;
 
-        const auto& beginning() const noexcept { return std::get<1>(m_separators); }
-        const auto& middle()    const noexcept { return std::get<0>(m_separators); }
-        const auto& ending()    const noexcept { return std::get<2>(m_separators); }
+        constexpr const auto& beginning() const noexcept { return std::get<1>(m_separators); }
+        constexpr const auto& middle()    const noexcept { return std::get<0>(m_separators); }
+        constexpr const auto& ending()    const noexcept { return std::get<2>(m_separators); }
 
         friend ostream_type& operator<<(ostream_type& os, Spacer const& that)
         {
