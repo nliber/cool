@@ -1,6 +1,7 @@
 #ifndef COOL_SPACER_H_
 #define COOL_SPACER_H_
 
+#include <cool/NullInserterExtractor.h>
 #include <cassert>
 #include <ostream>
 #include <string>
@@ -11,16 +12,17 @@
 //
 // Spacer
 //  Utility class for "spacing" through elements when looping
-//  Note:  Because of deduction guides, this usually has
-//  reference semantics for l-values.
+//
+//  Note:  Because of deduction guides, it is possible for Spacer to have
+//  reference semantics.
 //
 // Template parameters (note: the order of parameters is funky):
-//  charT - the value type of the ostream
-//  traits - the traits type of the stream
 //  Middle - the type of the separator between elements
 //  Beginning - the type of the first separator streamed
 //  End - the type to be streamed on destruction
-//      (only relevant when at least one separator streamed)
+//        (if at least one separator was streamed)
+//  charT - the value type of the ostream
+//  traits - the traits type of the ostream
 //
 // Constructors:
 //  Spacer(Middle m)
@@ -29,33 +31,26 @@
 //
 // Usage:
 //  {
-//      cool::Spacer comma('[', ", ", "]\n");
+//      cool::Spacer comma('[', ", ", std::string("]\n"));
 //      std::cout << comma << 1 << comma << 2 << comma << 3;
 //  } // outputs: [1, 2, 3]
+//
 ///////////////////////////////////////////////////////////////////////////////
 
 namespace cool
 {
-    class NullIOStream
-    {
-        template<typename charT, typename traits>
-        friend std::basic_ostream<charT, traits>&
-        operator<<(std::basic_ostream<charT, traits>& os, NullIOStream)
-        { return os; }
-
-        template<typename charT, typename traits>
-        friend std::basic_istream<charT, traits>&
-        operator>>(std::basic_istream<charT, traits>& is, NullIOStream)
-        { return is; }
-    };
 
     template<typename Beginning,
              typename Middle,
-             typename Ending = NullIOStream,
+             typename Ending = NullInserterExtractor,
              typename charT  = char,
              typename traits = std::char_traits<charT>>
     class Spacer
     {
+        // Using a tuple because some implementations (such as libstdc++)
+        //  use EBO to reduce size.
+        using Separators = std::tuple<Middle, Beginning, Ending>;
+
     public:
         using beginning_type = Beginning;
         using middle_type    = Middle;
@@ -109,16 +104,12 @@ namespace cool
         }
 
     private:
-        // Using a tuple because some implementations (such as libstdc++)
-        //  use EBO to reduce size.
-        using tuple_type = std::tuple<Middle, Beginning, Ending>;
-
         mutable ostream_type* m_os = nullptr;
-        tuple_type            m_separators;
+        Separators            m_separators;
     };
 
     template<typename M>
-    explicit Spacer(M&&)           -> Spacer<NullIOStream, M>;
+    explicit Spacer(M&&)           -> Spacer<NullInserterExtractor, M>;
 
     template<typename B, typename M>
     explicit Spacer(B&&, M&&)      -> Spacer<B, M>;
