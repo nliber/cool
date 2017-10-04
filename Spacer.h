@@ -45,7 +45,7 @@ namespace cool
 
         template<typename charT, typename traits>
         friend std::basic_istream<charT, traits>&
-        operator>>(std::basic_ostream<charT, traits>& is, NullIOStream)
+        operator>>(std::basic_istream<charT, traits>& is, NullIOStream)
         { return is; }
     };
 
