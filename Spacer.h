@@ -4,6 +4,7 @@
 #include <cassert>
 #include <ostream>
 #include <string>
+#include <tuple>
 #include <utility>
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -48,37 +49,34 @@ namespace cool
         { return is; }
     };
 
-    template<typename charT     = char,
-             typename traits    = std::char_traits<charT>,
-             typename Middle    = NullIOStream,
-             typename Beginning = NullIOStream,
-             typename End       = NullIOStream>
+    template<typename Beginning,
+             typename Middle,
+             typename Ending = NullIOStream,
+             typename charT  = char,
+             typename traits = std::char_traits<charT>>
     class Spacer
     {
     public:
+        using beginning_type = Beginning;
+        using middle_type    = Middle;
+        using ending_type    = Ending;
         using value_type     = charT;
         using traits_type    = traits;
         using ostream_type   = std::basic_ostream<charT, traits>;
-        using beginning_type = Beginning;
-        using middle_type    = Middle;
-        using end_type       = End;
 
         template<typename M>
         explicit Spacer(M&& m)
-        : m_middle{std::forward<M>(m)}
+        : m_separators{std::forward<M>(m), Beginning{}, Ending{}}
         {}
 
         template<typename B, typename M>
         explicit Spacer(B&& b, M&& m)
-        : m_middle{std::forward<M>(m)}
-        , m_beginning{std::forward<B>(b)}
+        : m_separators{std::forward<M>(m), std::forward<B>(b), Ending{}}
         {}
 
         template<typename B, typename M, typename E>
         explicit Spacer(B&& b, M&& m, E&& e)
-        : m_middle{std::forward<M>(m)}
-        , m_beginning{std::forward<B>(b)}
-        , m_end{std::forward<E>(e)}
+        : m_separators{std::forward<M>(m), std::forward<B>(b), std::forward<E>(e)}
         {}
 
         Spacer(Spacer const&)            = delete;
@@ -86,14 +84,18 @@ namespace cool
         Spacer& operator=(Spacer&&)      = delete;
         Spacer(Spacer&&)                 = delete;
 
+        const auto& beginning() const noexcept { return std::get<1>(m_separators); }
+        const auto& middle()    const noexcept { return std::get<0>(m_separators); }
+        const auto& ending()    const noexcept { return std::get<2>(m_separators); }
+
         friend ostream_type& operator<<(ostream_type& os, Spacer const& that)
         {
             if (that.m_os)
             {
                 assert(&os == that.m_os);
-                os << static_cast<Middle>(that.m_middle);
+                os << that.middle();
             } else {
-                os << static_cast<Beginning>(that.m_beginning);
+                os << that.beginning();
                 that.m_os = &os;
             }
 
@@ -103,24 +105,26 @@ namespace cool
         ~Spacer()
         {
             if (m_os)
-                *m_os << static_cast<End>(m_end);
+                *m_os << ending();
         }
 
     private:
-        mutable ostream_type* m_os{};
-        Middle                m_middle{};
-        Beginning             m_beginning{};
-        End                   m_end{};
+        // Using a tuple because some implementations (such as libstdc++)
+        //  use EBO to reduce size.
+        using tuple_type = std::tuple<Middle, Beginning, Ending>;
+
+        mutable ostream_type* m_os = nullptr;
+        tuple_type            m_separators;
     };
 
     template<typename M>
-    explicit Spacer(M&&)           -> Spacer<char, std::char_traits<char>, M>;
+    explicit Spacer(M&&)           -> Spacer<NullIOStream, M>;
 
     template<typename B, typename M>
-    explicit Spacer(B&&, M&&)      -> Spacer<char, std::char_traits<char>, M, B>;
+    explicit Spacer(B&&, M&&)      -> Spacer<B, M>;
 
     template<typename B, typename M, typename E>
-    explicit Spacer(B&&, M&&, E&&) -> Spacer<char, std::char_traits<char>, M, B, E>;
+    explicit Spacer(B&&, M&&, E&&) -> Spacer<B, M, E>;
 
 } // cool namespace
 
