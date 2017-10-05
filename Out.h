@@ -45,24 +45,16 @@ namespace cool
         { *m_os << m_value; }
 
         void Char() const
-        { *m_os << '\'' << cool::CChar(m_value) << '\''; }
+        { *m_os << '\'' << cool::CChar{m_value} << '\''; }
 
         void IntegralPromotion() const
         { *m_os << +m_value; }
-
-        void StringView(std::string_view sv) const
-        {
-            *m_os << '\"';
-            for (char c : sv)
-                *m_os << cool::CChar(c);
-            *m_os << '\"';
-        }
 
         void StringView() const
         {
             *m_os << '\"';
             for (char c : m_value)
-                *m_os << cool::CChar(c);
+                *m_os << cool::CChar{c};
             *m_os << '\"';
         }
 
@@ -72,13 +64,13 @@ namespace cool
             if (m_value[extent-1])
                 Range();
             else
-                StringView(std::string_view{m_value, extent-1});
+                *m_os << cool::Out<std::string_view>{m_value, extent-1};
         }
 
         void CharStar() const
         {
             if (m_value)
-                StringView(m_value);
+                *m_os << cool::Out<std::string_view>{m_value};
             else
                 *m_os << "nullptr";
         }
@@ -109,7 +101,7 @@ namespace cool
         void Enum() const
         {
             PrettyName();
-            *m_os << '(' << Out(static_cast<std::underlying_type_t<T>>(m_value)) << ')';
+            *m_os << '(' << cool::Out{static_cast<std::underlying_type_t<T>>(m_value)} << ')';
         }
 
         void Range() const
@@ -118,7 +110,7 @@ namespace cool
 
             cool::Spacer comma(',');
             for (auto&& v : m_value)
-                *m_os << comma << cool::Out(v);
+                *m_os << comma << cool::Out{v};
 
             *m_os << ']';
         }
