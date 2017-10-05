@@ -50,6 +50,14 @@ namespace cool
         void IntegralPromotion() const
         { *m_os << +m_value; }
 
+        void StringView(std::string_view sv) const
+        {
+            *m_os << '\"';
+            for (char c : sv)
+                *m_os << cool::CChar(c);
+            *m_os << '\"';
+        }
+
         void StringView() const
         {
             *m_os << '\"';
@@ -64,13 +72,13 @@ namespace cool
             if (m_value[extent-1])
                 Range();
             else
-                *m_os << cool::Out(std::string_view{m_value, extent-1});
+                StringView(std::string_view{m_value, extent-1});
         }
 
         void CharStar() const
         {
             if (m_value)
-                *m_os << cool::Out(std::string_view{m_value});
+                StringView(m_value);
             else
                 *m_os << "nullptr";
         }
