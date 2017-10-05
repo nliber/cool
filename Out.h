@@ -9,6 +9,8 @@
 #include <type_traits>
 #include <utility>
 
+#include <iostream>
+
 namespace cool
 {
     namespace type_traits
@@ -35,35 +37,36 @@ namespace cool
     class Out
     {
         void OstreamInsert(std::ostream& os) const
-        { os << m_ref; }
+        { os << m_value; }
 
         void Enum(std::ostream& os) const
         {
             PrettyName(os);
-            os << '(' << +static_cast<std::underlying_type_t<T>>(m_ref) << ')';
+            os << '(' << +static_cast<std::underlying_type_t<T>>(m_value) << ')';
         }
 
         void Range(std::ostream& os) const
         {
-            os << +std::size(m_ref) << '[';
+            os << +std::size(m_value) << '[';
 
             cool::Spacer comma(',');
-            for (auto&& v : m_ref)
+            for (auto&& v : m_value)
                 os << comma << cool::Out(v);
 
             os << ']';
         }
 
         void PrettyName(std::ostream& os) const
-        { os << cool::pretty_name(m_ref); }
+        { os << cool::pretty_name(m_value); }
 
     public:
         using value_type = T;
         static constexpr bool skip_ostream_insert = SkipOstreamInsert;
 
-        explicit Out(T const& t)
-        : m_ref{t}
-        {}
+        template<typename... Ts>
+        explicit Out(Ts&&... ts)
+        : m_value{std::forward<Ts>(ts)...}
+        { /* std::cerr << cool::pretty_name(*this) << '\n'; */ }
 
         Out(Out const&)            = delete;
         Out& operator=(Out const&) = delete;
@@ -85,15 +88,15 @@ namespace cool
         }
 
     private:
-        T const& m_ref;
+        T m_value;
     };
 
     template<typename T>
-    explicit Out(T const&) -> Out<T>;
+    explicit Out(T&&) -> Out<T>;
 
     template<typename T>
-    Out<T, true> OutOp(T const& t)
-    { return Out<T, true>{t}; }
+    Out<T, true> OutOp(T&& t)
+    { return Out<T, true>{std::forward<T>(t)}; }
 
 } // cool namespace
 
