@@ -64,7 +64,15 @@ namespace cool
             if (m_value[extent-1])
                 Range();
             else
-                *m_os << cool::Out(std::string_view(m_value, extent-1));
+                *m_os << cool::Out(std::string_view{m_value, extent-1});
+        }
+
+        void CharStar() const
+        {
+            if (m_value)
+                *m_os << cool::Out(std::string_view{m_value});
+            else
+                *m_os << "nullptr";
         }
 
         void HasOstreamInsert() const
@@ -84,6 +92,8 @@ namespace cool
                 StringView();
             else if constexpr(1 == std::rank_v<CVV> && std::is_same_v<std::remove_extent_t<CVV>, const char>)
                 CStringLiteral();
+            else if constexpr(std::is_pointer_v<V> && std::is_same_v<std::remove_const_t<std::remove_pointer_t<V>>, char>)
+                CharStar();
             else
                 OStreamInsert();
         }
