@@ -35,6 +35,7 @@ namespace cool
         template<typename T>
         struct is_range<T, std::void_t<decltype(std::begin(std::declval<T>()))>>
         : std::true_type {};
+
     }
 
     template<typename T, bool SkipOstreamInsert = false>
@@ -57,9 +58,19 @@ namespace cool
             *m_os << '\"';
         }
 
+        void CStringLiteral() const
+        {
+            size_t extent = std::extent_v<std::remove_reference_t<T>>;
+            if (m_value[extent-1])
+                Range();
+            else
+                *m_os << cool::Out(std::string_view(m_value, extent-1));
+        }
+
         void HasOstreamInsert() const
         {
-            using V = std::remove_cv_t<std::remove_reference_t<T>>;
+            using CVV = std::remove_reference_t<T>;
+            using V   = std::remove_cv_t<CVV>;
 
             if constexpr(std::is_same_v<V, char>)
                 Char();
@@ -71,6 +82,8 @@ namespace cool
                 StringView();
             else if constexpr(std::is_same_v<V, std::string>)
                 StringView();
+            else if constexpr(1 == std::rank_v<CVV> && std::is_same_v<std::remove_extent_t<CVV>, const char>)
+                CStringLiteral();
             else
                 OStreamInsert();
         }
