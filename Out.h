@@ -2,14 +2,18 @@
 #define COOL_OUT_H_
 
 #include <cool/pretty_name.h>
+#include <cool/CChar.h>
 #include <cool/Spacer.h>
+#include <boost/type_traits/has_left_shift.hpp>
 #include <iterator>
 #include <ostream>
 #include <string>
+#include <string_view>
 #include <type_traits>
 #include <utility>
 
 #include <iostream>
+
 
 namespace cool
 {
@@ -36,28 +40,60 @@ namespace cool
     template<typename T, bool SkipOstreamInsert = false>
     class Out
     {
-        void OstreamInsert(std::ostream& os) const
-        { os << m_value; }
+        void OStreamInsert() const
+        { *m_os << m_value; }
 
-        void Enum(std::ostream& os) const
+        void Char() const
+        { *m_os << '\'' << cool::CChar(m_value) << '\''; }
+
+        void IntegralPromotion() const
+        { *m_os << +m_value; }
+
+        void StringView() const
         {
-            PrettyName(os);
-            os << '(' << +static_cast<std::underlying_type_t<T>>(m_value) << ')';
+            *m_os << '\"';
+            for (char c : m_value)
+                *m_os << cool::CChar(c);
+            *m_os << '\"';
         }
 
-        void Range(std::ostream& os) const
+        void HasOstreamInsert() const
         {
-            os << +std::size(m_value) << '[';
+            using V = std::remove_cv_t<std::remove_reference_t<T>>;
+
+            if constexpr(std::is_same_v<V, char>)
+                Char();
+            else if constexpr(std::is_same_v<V, signed char>)
+                IntegralPromotion();
+            else if constexpr(std::is_same_v<V, unsigned char>)
+                IntegralPromotion();
+            else if constexpr(std::is_same_v<V, std::string_view>)
+                StringView();
+            else if constexpr(std::is_same_v<V, std::string>)
+                StringView();
+            else
+                OStreamInsert();
+        }
+
+        void Enum() const
+        {
+            PrettyName();
+            *m_os << '(' << Out(static_cast<std::underlying_type_t<T>>(m_value)) << ')';
+        }
+
+        void Range() const
+        {
+            *m_os << +std::size(m_value) << '[';
 
             cool::Spacer comma(',');
             for (auto&& v : m_value)
-                os << comma << cool::Out(v);
+                *m_os << comma << cool::Out(v);
 
-            os << ']';
+            *m_os << ']';
         }
 
-        void PrettyName(std::ostream& os) const
-        { os << cool::pretty_name(m_value); }
+        void PrettyName() const
+        { *m_os << cool::pretty_name(m_value); }
 
     public:
         using value_type = T;
@@ -66,7 +102,7 @@ namespace cool
         template<typename... Ts>
         explicit Out(Ts&&... ts)
         : m_value{std::forward<Ts>(ts)...}
-        { /* std::cerr << cool::pretty_name(*this) << '\n'; */ }
+        { /* std::cerr << cool::pretty_name(*this) << std::endl; */ }
 
         Out(Out const&)            = delete;
         Out& operator=(Out const&) = delete;
@@ -75,20 +111,22 @@ namespace cool
 
         friend std::ostream& operator<<(std::ostream& os, Out const&& that)
         {
-            if constexpr(!SkipOstreamInsert && type_traits::is_ostream_insertable<T>{})
-                that.OstreamInsert(os);
+            that.m_os = &os;
+            if constexpr(!SkipOstreamInsert && boost::has_left_shift<std::ostream&, T, std::ostream&>())
+                that.HasOstreamInsert();
             else if constexpr(std::is_enum_v<T>)
-                that.Enum(os);
+                that.Enum();
             else if constexpr(type_traits::is_range<T>{})
-                that.Range(os);
+                that.Range();
             else
-                that.PrettyName(os);
+                that.PrettyName();
 
             return os;
         }
 
     private:
-        T m_value;
+        mutable std::ostream* m_os;
+        T                     m_value;
     };
 
     template<typename T>
