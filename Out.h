@@ -65,6 +65,11 @@ namespace cool
         : m_ref{t}
         {}
 
+        Out(Out const&)            = delete;
+        Out& operator=(Out const&) = delete;
+        Out& operator=(Out&&)      = delete;
+        Out(Out&&)                 = delete;
+
         friend std::ostream& operator<<(std::ostream& os, Out const&& that)
         {
             if constexpr(!SkipOstreamInsert && type_traits::is_ostream_insertable<T>{})
