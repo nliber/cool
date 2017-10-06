@@ -12,9 +12,6 @@
 #include <type_traits>
 #include <utility>
 
-#include <iostream>
-
-
 namespace cool
 {
     namespace type_traits
@@ -48,7 +45,7 @@ namespace cool
                 cool::Spacer comma(',');
 
                 // fold expression over a comma (not to be confused with the Spacer comma)
-                ((os << comma << cool::Out(std::forward<decltype(args)>(args))), ...);
+                ((os << comma << cool::Out{std::forward<decltype(args)>(args)}), ...);
 
                 os << '}';
             }, m_value);
