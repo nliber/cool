@@ -32,7 +32,7 @@
 //
 //  All these constructors take an optional std::basic_ostream<charT, traits>&
 //  parameter at the end which is used for deduction guides only to deduce the
-//  ostream type (nothing is streamed to it on constructor, nor is it stored).
+//  ostream type (nothing is streamed to it on construction, nor is it stored).
 //
 // Usage:
 //  {
