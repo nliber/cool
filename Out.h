@@ -32,6 +32,17 @@ namespace cool
         struct is_tuple_like<T, std::void_t<decltype(std::tuple_size<std::remove_reference_t<T>>::value)>>
         : std::true_type {};
 
+        template<typename E>
+        using is_scoped_enum = std::bool_constant<std::is_enum_v<E> && !std::is_convertible_v<E, int>>;
+
+        template<typename E, typename = void>
+        struct has_ostream_inserter
+        : std::false_type {};
+
+        template<typename T>
+        struct has_ostream_inserter<T, std::void_t<decltype(operator<<(std::declval<std::ostream&>(), std::declval<T>()))>>
+        : std::true_type {};
+
     }
 
     template<typename T, bool SkipOstreamInsert = false>
@@ -104,14 +115,28 @@ namespace cool
                 CStringLiteral();
             else if constexpr(std::is_pointer_v<V> && std::is_same_v<std::remove_const_t<std::remove_pointer_t<V>>, char>)
                 CharStar();
+            else if constexpr(std::is_enum_v<V> && !type_traits::is_scoped_enum<V>{})
+                UnscopedEnum();
             else
                 OStreamInsert();
         }
 
         void Enum() const
         {
-            PrettyName();
-            *m_os << '(' << cool::Out{static_cast<std::underlying_type_t<T>>(m_value)} << ')';
+            *m_os
+                << cool::pretty_name(m_value)
+                << '('
+                << cool::Out{static_cast<std::underlying_type_t<std::remove_reference_t<T>>>(m_value)}
+                << ')'
+                ;
+        }
+
+        void UnscopedEnum() const
+        {
+            if constexpr(type_traits::has_ostream_inserter<std::remove_reference_t<T>>{})
+                OStreamInsert();
+            else
+                Enum();
         }
 
         void Range() const
@@ -129,7 +154,9 @@ namespace cool
         { *m_os << cool::pretty_name(m_value); }
 
     public:
-        using value_type = T;
+        using element_type = T;
+        using value_type = std::remove_reference_t<T>;
+
         static constexpr bool skip_ostream_insert = SkipOstreamInsert;
 
         template<typename... Ts>
@@ -147,7 +174,7 @@ namespace cool
             that.m_os = &os;
             if constexpr(!SkipOstreamInsert && boost::has_left_shift<std::ostream&, T, std::ostream&>())
                 that.HasOstreamInsert();
-            else if constexpr(std::is_enum_v<T>)
+            else if constexpr(std::is_enum_v<std::remove_reference_t<T>>)
                 that.Enum();
             else if constexpr(type_traits::is_range<T>{})
                 that.Range();
