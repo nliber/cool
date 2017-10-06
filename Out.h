@@ -53,7 +53,7 @@ namespace cool
             std::apply([&os = *m_os](auto&&... args)
             {
                 os << '{';
-                cool::Spacer comma(',');
+                cool::Spacer comma{','};
 
                 // fold expression over a comma (not to be confused with the Spacer comma)
                 ((os << comma << cool::Out{std::forward<decltype(args)>(args)}), ...);
@@ -143,7 +143,7 @@ namespace cool
         {
             *m_os << +std::size(m_value) << '[';
 
-            cool::Spacer comma(',');
+            cool::Spacer comma{','};
             for (auto&& v : m_value)
                 *m_os << comma << cool::Out{v};
 
@@ -152,6 +152,18 @@ namespace cool
 
         void PrettyName() const
         { *m_os << cool::pretty_name(m_value); }
+
+        void NeedsOStreamInsert() const
+        {
+            if constexpr(std::is_enum_v<std::remove_reference_t<T>>)
+                Enum();
+            else if constexpr(type_traits::is_range<T>{})
+                Range();
+            else if constexpr(type_traits::is_tuple_like<std::remove_reference_t<T>>{})
+                TupleLike();
+            else
+                PrettyName();
+        }
 
     public:
         using element_type = T;
@@ -172,16 +184,11 @@ namespace cool
         friend std::ostream& operator<<(std::ostream& os, Out const&& that)
         {
             that.m_os = &os;
+
             if constexpr(!SkipOstreamInsert && boost::has_left_shift<std::ostream&, T, std::ostream&>())
                 that.HasOstreamInsert();
-            else if constexpr(std::is_enum_v<std::remove_reference_t<T>>)
-                that.Enum();
-            else if constexpr(type_traits::is_range<T>{})
-                that.Range();
-            else if constexpr(type_traits::is_tuple_like<std::remove_reference_t<T>>{})
-                that.TupleLike();
             else
-                that.PrettyName();
+                that.NeedsOStreamInsert();
 
             return os;
         }
