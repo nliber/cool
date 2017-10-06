@@ -29,7 +29,7 @@ namespace cool
         : std::false_type {};
 
         template<typename T>
-        struct is_tuple_like<T, std::void_t<decltype(std::tuple_size<std::remove_reference_t<T>>::value)>>
+        struct is_tuple_like<T, std::void_t<decltype(std::tuple_size<T>::value)>>
         : std::true_type {};
 
         template<typename E>
@@ -133,7 +133,7 @@ namespace cool
 
         void UnscopedEnum() const
         {
-            if constexpr(type_traits::has_ostream_inserter<std::remove_reference_t<T>>{})
+            if constexpr(type_traits::has_ostream_inserter<T>{})
                 OStreamInsert();
             else
                 Enum();
@@ -178,7 +178,7 @@ namespace cool
                 that.Enum();
             else if constexpr(type_traits::is_range<T>{})
                 that.Range();
-            else if constexpr(type_traits::is_tuple_like<T>{})
+            else if constexpr(type_traits::is_tuple_like<std::remove_reference_t<T>>{})
                 that.TupleLike();
             else
                 that.PrettyName();
