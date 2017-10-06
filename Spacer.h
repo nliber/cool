@@ -84,6 +84,11 @@ namespace cool
         : Spacer{std::forward<M>(m)}
         {}
 
+        template<typename M>
+        explicit Spacer(ostream_type&, M&& m)
+        : Spacer{std::forward<M>(m)}
+        {}
+
         template<typename B, typename M>
         explicit Spacer(B&& b, M&& m)
         : m_separators{std::forward<M>(m), std::forward<B>(b), std::tuple_element_t<2, Separators>{}}
@@ -94,6 +99,11 @@ namespace cool
         : Spacer{std::forward<B>(b), std::forward<M>(m)}
         {}
 
+        template<typename B, typename M>
+        explicit Spacer(ostream_type&, B&& b, M&& m)
+        : Spacer{std::forward<B>(b), std::forward<M>(m)}
+        {}
+
         template<typename B, typename M, typename E>
         explicit Spacer(B&& b, M&& m, E&& e)
         : m_separators{std::forward<M>(m), std::forward<B>(b), std::forward<E>(e)}
@@ -101,6 +111,11 @@ namespace cool
 
         template<typename B, typename M, typename E>
         explicit Spacer(B&& b, M&& m, E&& e, ostream_type&)
+        : Spacer{std::forward<B>(b), std::forward<M>(m), std::forward<E>(e)}
+        {}
+
+        template<typename B, typename M, typename E>
+        explicit Spacer(ostream_type&, B&& b, M&& m, E&& e)
         : Spacer{std::forward<B>(b), std::forward<M>(m), std::forward<E>(e)}
         {}
 
@@ -142,6 +157,10 @@ namespace cool
     explicit Spacer(M&&, std::basic_ostream<charT, traits>&)
     -> Spacer<void, M, void, charT, traits>;
 
+    template<typename M, typename charT, typename traits>
+    explicit Spacer(std::basic_ostream<charT, traits>&, M&&)
+    -> Spacer<void, M, void, charT, traits>;
+
     template<typename B, typename M>
     explicit Spacer(B&&, M&&)
     -> Spacer<B, M>;
@@ -150,12 +169,20 @@ namespace cool
     explicit Spacer(B&&, M&&, std::basic_ostream<charT, traits>&)
     -> Spacer<B, M, void, charT, traits>;
 
+    template<typename B, typename M, typename charT, typename traits>
+    explicit Spacer(std::basic_ostream<charT, traits>&, B&&, M&&)
+    -> Spacer<B, M, void, charT, traits>;
+
     template<typename B, typename M, typename E>
     explicit Spacer(B&&, M&&, E&&)
     -> Spacer<B, M, E>;
 
     template<typename B, typename M, typename E, typename charT, typename traits>
     explicit Spacer(B&&, M&&, E&&, std::basic_ostream<charT, traits>&)
+    -> Spacer<B, M, E, charT, traits>;
+
+    template<typename B, typename M, typename E, typename charT, typename traits>
+    explicit Spacer(std::basic_ostream<charT, traits>&, B&&, M&&, E&&)
     -> Spacer<B, M, E, charT, traits>;
 
 } // cool namespace
