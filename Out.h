@@ -52,8 +52,6 @@ namespace cool
         using value_type = std::remove_reference_t<deduced_type>;
         using noncv_type = std::remove_cv_t<value_type>;
 
-        decltype(auto) data() const noexcept { return std::forward<deduced_type>(m_value); }
-
         void TupleLike() const
         {
             std::apply([&os = *m_os](auto&&... args)
@@ -87,7 +85,7 @@ namespace cool
 
         void CStringLiteral() const
         {
-            size_t extent = std::extent_v<std::remove_reference_t<T>>;
+            size_t extent = std::extent_v<value_type>;
             if (m_value[extent-1])
                 Range();
             else
@@ -104,24 +102,21 @@ namespace cool
 
         void HasOstreamInsert() const
         {
-            using CVV = std::remove_reference_t<T>;
-            using V   = std::remove_cv_t<CVV>;
-
-            if constexpr(std::is_same_v<V, char>)
+            if constexpr(std::is_same_v<noncv_type, char>)
                 Char();
-            else if constexpr(std::is_same_v<V, signed char>)
+            else if constexpr(std::is_same_v<noncv_type, signed char>)
                 IntegralPromotion();
-            else if constexpr(std::is_same_v<V, unsigned char>)
+            else if constexpr(std::is_same_v<noncv_type, unsigned char>)
                 IntegralPromotion();
-            else if constexpr(std::is_same_v<V, std::string_view>)
+            else if constexpr(std::is_same_v<noncv_type, std::string_view>)
                 StringView();
-            else if constexpr(std::is_same_v<V, std::string>)
+            else if constexpr(std::is_same_v<noncv_type, std::string>)
                 StringView();
-            else if constexpr(1 == std::rank_v<CVV> && std::is_same_v<std::remove_extent_t<CVV>, const char>)
+            else if constexpr(1 == std::rank_v<value_type> && std::is_same_v<std::remove_extent_t<value_type>, const char>)
                 CStringLiteral();
-            else if constexpr(std::is_pointer_v<V> && std::is_same_v<std::remove_const_t<std::remove_pointer_t<V>>, char>)
+            else if constexpr(std::is_pointer_v<noncv_type> && std::is_same_v<std::remove_const_t<std::remove_pointer_t<noncv_type>>, char>)
                 CharStar();
-            else if constexpr(std::is_enum_v<V> && !type_traits::is_scoped_enum<V>{})
+            else if constexpr(std::is_enum_v<noncv_type> && !type_traits::is_scoped_enum<noncv_type>{})
                 UnscopedEnum();
             else
                 OStreamInsert();
@@ -132,14 +127,14 @@ namespace cool
             *m_os
                 << cool::pretty_name(m_value)
                 << '('
-                << cool::Out{static_cast<std::underlying_type_t<std::remove_reference_t<T>>>(m_value)}
+                << cool::Out{static_cast<std::underlying_type_t<value_type>>(m_value)}
                 << ')'
                 ;
         }
 
         void UnscopedEnum() const
         {
-            if constexpr(type_traits::has_ostream_inserter<T>{})
+            if constexpr(type_traits::has_ostream_inserter<deduced_type>{})
                 OStreamInsert();
             else
                 Enum();
@@ -161,11 +156,11 @@ namespace cool
 
         void NeedsOStreamInsert() const
         {
-            if constexpr(std::is_enum_v<std::remove_reference_t<T>>)
+            if constexpr(std::is_enum_v<value_type>)
                 Enum();
-            else if constexpr(type_traits::is_range<T>{})
+            else if constexpr(type_traits::is_range<deduced_type>{})
                 Range();
-            else if constexpr(type_traits::is_tuple_like<std::remove_reference_t<T>>{})
+            else if constexpr(type_traits::is_tuple_like<value_type>{})
                 TupleLike();
             else
                 PrettyName();
@@ -188,7 +183,7 @@ namespace cool
         {
             that.m_os = &os;
 
-            if constexpr(!SkipOstreamInsert && boost::has_left_shift<std::ostream&, T, std::ostream&>())
+            if constexpr(!SkipOstreamInsert && boost::has_left_shift<std::ostream&, deduced_type, std::ostream&>())
                 that.HasOstreamInsert();
             else
                 that.NeedsOStreamInsert();
@@ -198,7 +193,7 @@ namespace cool
 
     private:
         mutable std::ostream* m_os;
-        T                     m_value;
+        deduced_type          m_value;
     };
 
     template<typename T>
