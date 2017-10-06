@@ -52,6 +52,10 @@ namespace cool
         using value_type = std::remove_reference_t<deduced_type>;
         using noncv_type = std::remove_cv_t<value_type>;
 
+        // Need a wrapper so we can have "mutable" references
+        // tuple already does this work
+        using wrapper_type = std::tuple<deduced_type>;
+
         void TupleLike() const
         {
             std::apply([&os = *m_os](auto&&... args)
@@ -63,22 +67,22 @@ namespace cool
                 ((os << comma << cool::Out{std::forward<decltype(args)>(args)}), ...);
 
                 os << '}';
-            }, m_value);
+            }, data());
         }
 
         void OStreamInsert() const
-        { *m_os << m_value; }
+        { *m_os << data(); }
 
         void Char() const
-        { *m_os << '\'' << cool::CChar{m_value} << '\''; }
+        { *m_os << '\'' << cool::CChar{data()} << '\''; }
 
         void IntegralPromotion() const
-        { *m_os << +m_value; }
+        { *m_os << +data(); }
 
         void StringView() const
         {
             *m_os << '\"';
-            for (char c : m_value)
+            for (char c : data())
                 *m_os << cool::CChar{c};
             *m_os << '\"';
         }
@@ -86,16 +90,16 @@ namespace cool
         void CStringLiteral() const
         {
             size_t extent = std::extent_v<value_type>;
-            if (m_value[extent-1])
+            if (data()[extent-1])
                 Range();
             else
-                *m_os << cool::Out<std::string_view>{m_value, extent-1};
+                *m_os << cool::Out<std::string_view>{std::string_view{data(), extent-1}};
         }
 
         void CharStar() const
         {
-            if (m_value)
-                *m_os << cool::Out<std::string_view>{m_value};
+            if (data())
+                *m_os << cool::Out<std::string_view>{std::string_view{data()}};
             else
                 *m_os << "nullptr";
         }
@@ -125,9 +129,9 @@ namespace cool
         void Enum() const
         {
             *m_os
-                << cool::pretty_name(m_value)
+                << cool::pretty_name(data())
                 << '('
-                << cool::Out{static_cast<std::underlying_type_t<value_type>>(m_value)}
+                << cool::Out{static_cast<std::underlying_type_t<value_type>>(data())}
                 << ')'
                 ;
         }
@@ -142,17 +146,17 @@ namespace cool
 
         void Range() const
         {
-            *m_os << +std::size(m_value) << '[';
+            *m_os << +std::size(data()) << '[';
 
             cool::Spacer comma{','};
-            for (auto&& v : m_value)
+            for (auto&& v : data())
                 *m_os << comma << cool::Out{v};
 
             *m_os << ']';
         }
 
         void PrettyName() const
-        { *m_os << cool::pretty_name(m_value); }
+        { *m_os << cool::pretty_name(data()); }
 
         void NeedsOStreamInsert() const
         {
@@ -169,9 +173,9 @@ namespace cool
     public:
         static constexpr bool skip_ostream_insert = SkipOstreamInsert;
 
-        template<typename... Ts>
-        explicit Out(Ts&&... ts)
-        : m_value{std::forward<Ts>(ts)...}
+        template<typename U>
+        explicit Out(U&& u)
+        : m_wrapper{std::forward<U>(u)}
         { /* std::cerr << cool::pretty_name(*this) << std::endl; */ }
 
         Out(Out const&)            = delete;
@@ -193,7 +197,9 @@ namespace cool
 
     private:
         mutable std::ostream* m_os;
-        deduced_type          m_value;
+        mutable wrapper_type  m_wrapper;
+
+        decltype(auto) data() const noexcept { return std::forward<deduced_type>(std::get<0>(m_wrapper)); }
     };
 
     template<typename T>
