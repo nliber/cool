@@ -156,8 +156,6 @@ namespace cool
 
         friend std::ostream& operator<<(std::ostream& os, Out const&& that)
         {
-            using CVV = std::remove_reference_t<T>;
-
             that.m_os = &os;
             if constexpr(!SkipOstreamInsert && boost::has_left_shift<std::ostream&, T, std::ostream&>())
                 that.HasOstreamInsert();
