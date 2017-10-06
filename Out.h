@@ -40,27 +40,18 @@ namespace cool
     template<typename T, bool SkipOstreamInsert = false>
     class Out
     {
-
-        template<typename... Ss>
-        void Elements(cool::Spacer<Ss...> const&) const
-        {
-        }
-
-        template<typename... Ss, typename U, typename... Us>
-        void Elements(cool::Spacer<Ss...> const& spacer, U&& u, Us&&... us) const
-        {
-            *m_os << spacer << cool::Out{std::forward<U>(u)};
-            Elements(spacer, std::forward<Us>(us)...);
-        }
-
         void TupleLike() const
         {
-            *m_os << '{';
-            std::apply([this](auto&&... args)
+            std::apply([&os = *m_os](auto&&... args)
             {
-                Elements(cool::Spacer(','), std::forward<decltype(args)>(args)...);
+                os << '{';
+                cool::Spacer comma(',');
+
+                // fold expression over a comma (not to be confused with the Spacer comma)
+                ((os << comma << cool::Out(std::forward<decltype(args)>(args))), ...);
+
+                os << '}';
             }, m_value);
-            *m_os << '}';
         }
 
         void OStreamInsert() const
