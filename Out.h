@@ -9,6 +9,7 @@
 #include <ostream>
 #include <string>
 #include <string_view>
+#include <tuple>
 #include <type_traits>
 #include <utility>
 
@@ -54,11 +55,14 @@ namespace cool
 
         // Need a wrapper so we can have "mutable" references
         // tuple already does this work
-        using wrapper_type = std::tuple<deduced_type>;
+        using wrapper_type = std::tuple<std::ostream*, deduced_type>;
+
+        std::ostream&  os()   const noexcept { return *std::get<0>(m_wrapper); }
+        decltype(auto) data() const noexcept { return std::forward<deduced_type>(std::get<1>(m_wrapper)); }
 
         void TupleLike() const
         {
-            std::apply([&os = *m_os](auto&&... args)
+            std::apply([&os = os()](auto&&... args)
             {
                 os << '{';
                 cool::Spacer comma{','};
@@ -71,20 +75,20 @@ namespace cool
         }
 
         void OStreamInsert() const
-        { *m_os << data(); }
+        { os() << data(); }
 
         void Char() const
-        { *m_os << '\'' << cool::CChar{data()} << '\''; }
+        { os() << '\'' << cool::CChar{data()} << '\''; }
 
         void IntegralPromotion() const
-        { *m_os << +data(); }
+        { os() << +data(); }
 
         void StringView() const
         {
-            *m_os << '\"';
+            os() << '\"';
             for (char c : data())
-                *m_os << cool::CChar{c};
-            *m_os << '\"';
+                os() << cool::CChar{c};
+            os() << '\"';
         }
 
         void CStringLiteral() const
@@ -93,15 +97,15 @@ namespace cool
             if (data()[extent-1])
                 Range();
             else
-                *m_os << cool::Out<std::string_view>{std::string_view{data(), extent-1}};
+                os() << cool::Out<std::string_view>{std::string_view{data(), extent-1}};
         }
 
         void CharStar() const
         {
             if (data())
-                *m_os << cool::Out<std::string_view>{std::string_view{data()}};
+                os() << cool::Out<std::string_view>{std::string_view{data()}};
             else
-                *m_os << "nullptr";
+                os() << "nullptr";
         }
 
         void HasOstreamInsert() const
@@ -128,7 +132,7 @@ namespace cool
 
         void Enum() const
         {
-            *m_os
+            os()
                 << cool::pretty_name(data())
                 << '('
                 << cool::Out{static_cast<std::underlying_type_t<value_type>>(data())}
@@ -146,17 +150,17 @@ namespace cool
 
         void Range() const
         {
-            *m_os << +std::size(data()) << '[';
+            os() << +std::size(data()) << '[';
 
             cool::Spacer comma{','};
             for (auto&& v : data())
-                *m_os << comma << cool::Out{v};
+                os() << comma << cool::Out{v};
 
-            *m_os << ']';
+            os() << ']';
         }
 
         void PrettyName() const
-        { *m_os << cool::pretty_name(data()); }
+        { os() << cool::pretty_name(data()); }
 
         void NeedsOStreamInsert() const
         {
@@ -175,7 +179,7 @@ namespace cool
 
         template<typename U>
         explicit Out(U&& u)
-        : m_wrapper{std::forward<U>(u)}
+        : m_wrapper{nullptr, std::forward<U>(u)}
         { /* std::cerr << cool::pretty_name(*this) << std::endl; */ }
 
         Out(Out const&)            = delete;
@@ -183,10 +187,9 @@ namespace cool
         Out& operator=(Out&&)      = delete;
         Out(Out&&)                 = delete;
 
-        friend std::ostream& operator<<(std::ostream& os, Out const&& that)
+        friend std::ostream& operator<<(std::ostream& os, Out&& that)
         {
-            that.m_os = &os;
-
+            std::get<0>(that.m_wrapper) = &os;
             if constexpr(!SkipOstreamInsert && boost::has_left_shift<std::ostream&, deduced_type, std::ostream&>())
                 that.HasOstreamInsert();
             else
@@ -196,10 +199,8 @@ namespace cool
         }
 
     private:
-        mutable std::ostream* m_os;
         mutable wrapper_type  m_wrapper;
 
-        decltype(auto) data() const noexcept { return std::forward<deduced_type>(std::get<0>(m_wrapper)); }
     };
 
     template<typename T>
