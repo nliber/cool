@@ -19,15 +19,6 @@ namespace cool
 {
     namespace type_traits
     {
-        template<typename T, typename charT = char, typename traits = std::char_traits<charT>, typename = void>
-        struct is_ostream_insertable
-        : std::false_type {};
-
-        template<typename T, typename charT, typename traits>
-        struct is_ostream_insertable<T, charT, traits,
-                                     std::void_t<decltype(std::declval<std::basic_ostream<charT, traits>&>() << std::declval<T>())>>
-        : std::true_type {};
-
         template<typename T, typename = void>
         struct is_range
         : std::false_type {};
@@ -36,11 +27,42 @@ namespace cool
         struct is_range<T, std::void_t<decltype(std::begin(std::declval<T>()))>>
         : std::true_type {};
 
+        template<typename T, typename = void>
+        struct is_tuple_like
+        : std::false_type {};
+
+        template<typename T>
+        struct is_tuple_like<T, std::void_t<decltype(std::tuple_size<std::remove_reference_t<T>>::value)>>
+        : std::true_type {};
+
     }
 
     template<typename T, bool SkipOstreamInsert = false>
     class Out
     {
+
+        template<typename... Ss>
+        void Elements(cool::Spacer<Ss...> const&) const
+        {
+        }
+
+        template<typename... Ss, typename U, typename... Us>
+        void Elements(cool::Spacer<Ss...> const& spacer, U&& u, Us&&... us) const
+        {
+            *m_os << spacer << cool::Out{std::forward<U>(u)};
+            Elements(spacer, std::forward<Us>(us)...);
+        }
+
+        void TupleLike() const
+        {
+            *m_os << '{';
+            std::apply([this](auto&&... args)
+            {
+                Elements(cool::Spacer(','), std::forward<decltype(args)>(args)...);
+            }, m_value);
+            *m_os << '}';
+        }
+
         void OStreamInsert() const
         { *m_os << m_value; }
 
@@ -134,6 +156,8 @@ namespace cool
 
         friend std::ostream& operator<<(std::ostream& os, Out const&& that)
         {
+            using CVV = std::remove_reference_t<T>;
+
             that.m_os = &os;
             if constexpr(!SkipOstreamInsert && boost::has_left_shift<std::ostream&, T, std::ostream&>())
                 that.HasOstreamInsert();
@@ -141,6 +165,8 @@ namespace cool
                 that.Enum();
             else if constexpr(type_traits::is_range<T>{})
                 that.Range();
+            else if constexpr(type_traits::is_tuple_like<T>{})
+                that.TupleLike();
             else
                 that.PrettyName();
 
