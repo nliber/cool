@@ -1,7 +1,6 @@
 #ifndef COOL_SPACER_H_
 #define COOL_SPACER_H_
 
-#include <cool/NullInserterExtractor.h>
 #include <cassert>
 #include <ostream>
 #include <string>
@@ -55,11 +54,13 @@ namespace cool
         // Using a tuple because some implementations (such as libstdc++)
         //  use EBO to reduce size.
 
-        // Helper to convert void into an empty type that can be stored in a tuple
-        template<typename T>
-        using not_void_t = std::conditional_t<std::is_void<T>{}, cool::NullInserterExtractor, T>;
+        // Helpers to convert void into an empty type capital Void that can be stored in a tuple
+        struct Void { friend auto& operator<<(std::basic_ostream<charT, traits>& os, Void) { return os; } };
 
-        using Separators = std::tuple<not_void_t<Middle>, not_void_t<Beginning>, not_void_t<Ending>>;
+        template<typename T>
+        using void_to_Void_t = std::conditional_t<std::is_void<T>{}, Void, T>;
+
+        using Separators = std::tuple<void_to_Void_t<Middle>, void_to_Void_t<Beginning>, void_to_Void_t<Ending>>;
 
         constexpr decltype(auto) beginning() const noexcept { return std::get<1>(m_separators); }
         constexpr decltype(auto) middle()    const noexcept { return std::get<0>(m_separators); }
