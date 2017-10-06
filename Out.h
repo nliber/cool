@@ -48,6 +48,12 @@ namespace cool
     template<typename T, bool SkipOstreamInsert = false>
     class Out
     {
+        using deduced_type = T;
+        using value_type = std::remove_reference_t<deduced_type>;
+        using noncv_type = std::remove_cv_t<value_type>;
+
+        decltype(auto) data() const noexcept { return std::forward<deduced_type>(m_value); }
+
         void TupleLike() const
         {
             std::apply([&os = *m_os](auto&&... args)
@@ -166,9 +172,6 @@ namespace cool
         }
 
     public:
-        using element_type = T;
-        using value_type = std::remove_reference_t<T>;
-
         static constexpr bool skip_ostream_insert = SkipOstreamInsert;
 
         template<typename... Ts>
