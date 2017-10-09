@@ -78,6 +78,9 @@ namespace cool
         void OStreamInsert() const
         { os() << data(); }
 
+        void Bool() const
+        { os() << std::boolalpha << data(); }
+
         void Char() const
         { os() << '\'' << cool::CChar{data()} << '\''; }
 
@@ -111,7 +114,9 @@ namespace cool
 
         void HasOstreamInsert() const
         {
-            if constexpr(std::is_same_v<noncv_type, char>)
+            if constexpr(std::is_same_v<noncv_type, bool>)
+                Bool();
+            else if constexpr(std::is_same_v<noncv_type, char>)
                 Char();
             else if constexpr(std::is_same_v<noncv_type, signed char>)
                 IntegralPromotion();
