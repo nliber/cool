@@ -3,6 +3,7 @@
 
 #include <cool/pretty_name.h>
 #include <cool/CChar.h>
+#include <cool/iomanip.h>
 #include <cool/Spacer.h>
 #include <boost/type_traits/has_left_shift.hpp>
 #include <iterator>
@@ -189,6 +190,8 @@ namespace cool
 
         friend std::ostream& operator<<(std::ostream& os, Out&& that)
         {
+            cool::setiomanip iomanip{true, os};
+
             std::get<0>(that.m_wrapper) = &os;
             if constexpr(!SkipOstreamInsert && boost::has_left_shift<std::ostream&, deduced_type, std::ostream&>())
                 that.HasOstreamInsert();
