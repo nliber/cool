@@ -60,8 +60,7 @@ namespace cool
         static auto
         constexpr offset_name() noexcept
         {
-            int i{};
-            return sizeof_ptpf(i) - sizeof "int&]";
+            return sizeof_ptpf(0) - sizeof "int]";
         }
 
     public:
