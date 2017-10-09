@@ -6,6 +6,8 @@
 #include <cool/iomanip.h>
 #include <cool/Spacer.h>
 #include <boost/type_traits/has_left_shift.hpp>
+#include <iomanip>
+#include <ios>
 #include <iterator>
 #include <ostream>
 #include <string>
@@ -83,6 +85,13 @@ namespace cool
 
         void Char() const
         { os() << '\'' << cool::CChar{data()} << '\''; }
+
+        void Byte() const
+        {
+            unsigned char uc{static_cast<unsigned char>(data())};
+
+            os() << "0x" << "0123456789abcdef"[uc / 16] << "0123456789abcdef"[uc % 16];
+        }
 
         void IntegralPromotion() const
         { os() << +data(); }
@@ -170,7 +179,9 @@ namespace cool
 
         void NeedsOStreamInsert() const
         {
-            if constexpr(std::is_enum_v<value_type>)
+            if constexpr(std::is_same_v<noncv_type, std::byte>)
+                Byte();
+            else if constexpr(std::is_enum_v<value_type>)
                 Enum();
             else if constexpr(type_traits::is_range<deduced_type>{})
                 Range();
