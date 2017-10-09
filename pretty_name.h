@@ -12,6 +12,11 @@ namespace cool
     //  (static) type passed into it, after the top level const/volatile
     //  qualifiers are removed.
     //
+    // pretty_type
+    //  pretty_type is a class that encapsulates the human readable name of the
+    //  deduced (static) type passed to it, keeping the top level
+    //  const/volatile qualifier and an "&" at the end for l-value references.
+    //
     ///////////////////////////////////////////////////////////////////////////
     
     class pretty_name : public std::string_view
@@ -40,6 +45,30 @@ namespace cool
         template<typename T>
         constexpr pretty_name(const volatile T&& t) noexcept
         : pretty_name{t}
+        {}
+    };
+
+    class pretty_type : public std::string_view
+    {
+        template<typename T>
+        static auto
+        constexpr sizeof_ptpf(T&&) noexcept
+        {
+            return sizeof __PRETTY_FUNCTION__ - sizeof "static auto sizeof_ptpf" + sizeof "pretty_type";
+        }
+
+        static auto
+        constexpr offset_name() noexcept
+        {
+            int i{};
+            return sizeof_ptpf(i) - sizeof "int&]";
+        }
+
+    public:
+        template<typename T>
+        constexpr pretty_type(T&&) noexcept
+        : std::string_view{       __PRETTY_FUNCTION__ + offset_name(),
+                           sizeof __PRETTY_FUNCTION__ - offset_name() - sizeof "]"}
         {}
     };
 
