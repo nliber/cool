@@ -59,9 +59,10 @@ namespace cool
         class Hex
         {
         public:
-            explicit Hex(unsigned char uc) : m_uc{uc} {}
-            explicit Hex(signed char sc) : m_uc{sc} {}
-            explicit Hex(char c) : m_uc{c} {}
+            explicit constexpr Hex(unsigned char uc) noexcept : m_uc{uc} {}
+            explicit constexpr Hex(signed char sc) noexcept : m_uc{sc} {}
+            explicit constexpr Hex(char c) noexcept : m_uc{c} {}
+            explicit constexpr Hex(std::byte b) noexcept : m_uc{static_cast<std::underlying_type_t<std::byte>>(b)} {}
 
             friend std::ostream& operator<<(std::ostream& os, Hex that)
             {
@@ -70,6 +71,8 @@ namespace cool
                     << "0123456789abcdef"[that.m_uc % 16]
                     ;
             }
+
+            constexpr unsigned char get() const noexcept { return m_uc; }
 
         private:
             unsigned char m_uc;
@@ -106,7 +109,7 @@ namespace cool
         { os() << '\'' << cool::CChar{data()} << '\''; }
 
         void Byte() const
-        { os() << "0x" << Hex{static_cast<std::underlying_type_t<value_type>>(data())}; }
+        { os() << "0x" << Hex{data()}; }
 
         void IntegralPromotion() const
         { os() << +data(); }
