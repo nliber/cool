@@ -56,6 +56,25 @@ namespace cool
         using value_type = std::remove_reference_t<deduced_type>;
         using noncv_type = std::remove_cv_t<value_type>;
 
+        class Hex
+        {
+        public:
+            explicit Hex(unsigned char uc) : m_uc{uc} {}
+            explicit Hex(signed char sc) : m_uc{sc} {}
+            explicit Hex(char c) : m_uc{c} {}
+
+            friend std::ostream& operator<<(std::ostream& os, Hex that)
+            {
+                return os
+                    << "0123456789abcdef"[that.m_uc / 16]
+                    << "0123456789abcdef"[that.m_uc % 16]
+                    ;
+            }
+
+        private:
+            unsigned char m_uc;
+        };
+
         // Need a wrapper so we can have "mutable" references
         // tuple already does this work
         using wrapper_type = std::tuple<std::ostream*, deduced_type>;
@@ -87,11 +106,7 @@ namespace cool
         { os() << '\'' << cool::CChar{data()} << '\''; }
 
         void Byte() const
-        {
-            unsigned char uc{static_cast<unsigned char>(data())};
-
-            os() << "0x" << "0123456789abcdef"[uc / 16] << "0123456789abcdef"[uc % 16];
-        }
+        { os() << "0x" << Hex{static_cast<std::underlying_type_t<value_type>>(data())}; }
 
         void IntegralPromotion() const
         { os() << +data(); }
@@ -106,11 +121,11 @@ namespace cool
 
         void CStringLiteral() const
         {
-            size_t extent = std::extent_v<value_type>;
-            if (data()[extent-1])
-                Range();
-            else
+            constexpr size_t extent = std::extent_v<value_type>;
+            if (extent && !data()[extent - 1])
                 os() << cool::Out<std::string_view>{std::string_view{data(), extent-1}};
+            else
+                Range();
         }
 
         void CharStar() const
