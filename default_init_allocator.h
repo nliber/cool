@@ -25,6 +25,8 @@ namespace cool
         class default_init_allocator_base : A
         {
         protected:
+            using inner_alloc = A;
+
             default_init_allocator_base() noexcept = default;
 
             template<typename... Ts>
@@ -40,6 +42,8 @@ namespace cool
         class default_init_allocator_base<A, std::enable_if_t<std::is_final_v<A>>>
         {
         protected:
+            using inner_alloc = A;
+
             default_init_allocator_base() noexcept = default;
 
             template<typename... Ts>
