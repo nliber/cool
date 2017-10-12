@@ -5,15 +5,20 @@
 
 namespace cool
 {
-    template<typename T>
-    class  default_init_allocator
+    template<typename T, typename A = std::allocator<T>>
+    class default_init_allocator
     {
-        using inner_alloc  = std::allocator<T>;
+        static_assert(std::is_empty_v<A>);
+
+        using inner_alloc  = A;
         using inner_traits = std::allocator_traits<inner_alloc>;
 
+        template<typename U>
+        using rebind_inner = typename inner_traits::template rebind_alloc<U>;
+
     public:
-        using allocator_type = default_init_allocator;
-        using value_type = T;
+        using allocator_type                         = default_init_allocator;
+        using value_type                             = T;
 
         using pointer                                = typename inner_traits::pointer;
         using const_pointer                          = typename inner_traits::const_pointer;
@@ -29,13 +34,13 @@ namespace cool
         using is_always_equal                        = typename inner_traits::is_always_equal;
 
         template<typename U>
-        using rebind_alloc                           = default_init_allocator<U>;
+        using rebind_alloc                           = default_init_allocator<U, rebind_inner<U>>;
 
         default_init_allocator() noexcept = default;
         default_init_allocator(default_init_allocator const&) noexcept = default;
 
         template<typename U>
-        default_init_allocator(default_init_allocator<U> const&) noexcept {}
+        default_init_allocator(rebind_alloc<U> const&) noexcept {}
 
         ~default_init_allocator() = default;
 
