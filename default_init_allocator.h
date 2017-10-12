@@ -25,16 +25,16 @@ namespace cool
         class default_init_allocator_base : A
         {
         protected:
-            A      & inner()       noexcept { return *this; }
-            A const& inner() const noexcept { return *this; }
+            constexpr A      & inner()       noexcept { return *this; }
+            constexpr A const& inner() const noexcept { return *this; }
         };
 
         template<typename A>
         class default_init_allocator_base<A, std::enable_if_t<std::is_final_v<A>>>
         {
         protected:
-            A      & inner()       noexcept { return a; }
-            A const& inner() const noexcept { return a; }
+            constexpr A      & inner()       noexcept { return a; }
+            constexpr A const& inner() const noexcept { return a; }
 
         private:
             A a;
@@ -72,11 +72,10 @@ namespace cool
         using is_always_equal                        = typename inner_traits::is_always_equal;
 
         template<typename U>
-        //using rebind_alloc                           = default_init_allocator<U, rebind_inner<U>>;
         using rebind_alloc                           = default_init_allocator<U, typename inner_traits::template rebind_alloc<U>>;
 
         template<typename U>
-        struct rebind { using other = rebind_alloc<U>; };
+        struct rebind { using other = default_init_allocator<U, typename inner_traits::template rebind_alloc<U>>; };
 
         default_init_allocator() noexcept = default;
         default_init_allocator(default_init_allocator const&) noexcept = default;
