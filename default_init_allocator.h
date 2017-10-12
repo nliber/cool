@@ -16,8 +16,47 @@
 ///////////////////////////////////////////////////////////////////////////////
 namespace cool
 {
+    namespace detail
+    {
+        // default_init_allocator_base is to use aggregation for final
+        //  allocators vs. private inheritance for non-final allocators,
+        //  the latter to take advantage of EBO
+        template<typename T, typename A, typename = void>
+        class default_init_allocator_base : A
+        {
+        protected:
+            default_init_allocator_base() noexcept = default;
+
+            template<typename... Ts>
+            default_init_allocator_base(Ts&&... ts)
+            : A(std::forward<Ts>(ts)...)
+            {}
+
+            A      & inner()       noexcept { return *this; }
+            A const& inner() const noexcept { return *this; }
+        };
+
+        template<typename T, typename A>
+        class default_init_allocator_base<T, A, std::enable_if_t<std::is_final_v<A>>>
+        {
+        protected:
+            default_init_allocator_base() noexcept = default;
+
+            template<typename... Ts>
+            default_init_allocator_base(Ts&&... ts)
+            : a(std::forward<Ts>(ts)...)
+            {}
+
+            A      & inner()       noexcept { return a; }
+            A const& inner() const noexcept { return a; }
+
+        private:
+            A a;
+        };
+    } // detail namespace
+
     template<typename T, typename A = std::allocator<T>>
-    class default_init_allocator : A
+    class default_init_allocator : detail::default_init_allocator_base<T, A>
     {
         static_assert(std::is_empty_v<A>);
 
@@ -27,8 +66,7 @@ namespace cool
         template<typename U>
         using rebind_inner = typename inner_traits::template rebind_alloc<U>;
 
-        inner_alloc      & inner()       noexcept { return *this; }
-        inner_alloc const& inner() const noexcept { return *this; }
+        using detail::default_init_allocator_base<T, A>::inner;
 
     public:
         using allocator_type                         = default_init_allocator;
