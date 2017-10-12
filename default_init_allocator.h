@@ -21,7 +21,7 @@ namespace cool
         // default_init_allocator_base is to use aggregation for final
         //  allocators vs. private inheritance for non-final allocators,
         //  the latter to take advantage of EBO
-        template<typename T, typename A, typename = void>
+        template<typename A, typename = void>
         class default_init_allocator_base : A
         {
         protected:
@@ -36,8 +36,8 @@ namespace cool
             A const& inner() const noexcept { return *this; }
         };
 
-        template<typename T, typename A>
-        class default_init_allocator_base<T, A, std::enable_if_t<std::is_final_v<A>>>
+        template<typename A>
+        class default_init_allocator_base<A, std::enable_if_t<std::is_final_v<A>>>
         {
         protected:
             default_init_allocator_base() noexcept = default;
@@ -56,7 +56,7 @@ namespace cool
     } // detail namespace
 
     template<typename T, typename A = std::allocator<T>>
-    class default_init_allocator : detail::default_init_allocator_base<T, A>
+    class default_init_allocator : detail::default_init_allocator_base<A>
     {
         static_assert(std::is_empty_v<A>);
 
@@ -66,7 +66,7 @@ namespace cool
         template<typename U>
         using rebind_inner = typename inner_traits::template rebind_alloc<U>;
 
-        using detail::default_init_allocator_base<T, A>::inner;
+        using detail::default_init_allocator_base<A>::inner;
 
     public:
         using allocator_type                         = default_init_allocator;
