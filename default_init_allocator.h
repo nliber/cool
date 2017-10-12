@@ -17,7 +17,7 @@
 namespace cool
 {
     template<typename T, typename A = std::allocator<T>>
-    class default_init_allocator
+    class default_init_allocator : A
     {
         static_assert(std::is_empty_v<A>);
 
@@ -26,6 +26,9 @@ namespace cool
 
         template<typename U>
         using rebind_inner = typename inner_traits::template rebind_alloc<U>;
+
+        inner_alloc      & inner()       noexcept { return *this; }
+        inner_alloc const& inner() const noexcept { return *this; }
 
     public:
         using allocator_type                         = default_init_allocator;
@@ -59,33 +62,33 @@ namespace cool
         ~default_init_allocator() = default;
 
         pointer allocate(size_type n)
-        { inner_alloc a; return inner_traits::allocate(a, n); }
+        { return inner_traits::allocate(inner(), n); }
 
         pointer allocate(size_type n, const_void_pointer hint)
-        { inner_alloc a; return inner_traits::allocate(a, n, hint); }
+        { return inner_traits::allocate(inner(), n, hint); }
 
         void deallocate(pointer p, size_type n)
-        { inner_alloc a; inner_traits::deallocate(a, p, n); }
+        { inner_traits::deallocate(inner(), p, n); }
 
         void construct(T* p)
         { ::new (static_cast<void*>(p)) T; }
 
         template<typename... Args>
         void construct(T* p, Args&&... args)
-        { inner_alloc a; inner_traits::construct(a, p, std::forward<Args>(args)...); }
+        { inner_traits::construct(inner(), p, std::forward<Args>(args)...); }
 
         void destroy(T* p)
-        { inner_alloc a; inner_traits::destroy(a, p); }
+        { inner_traits::destroy(inner(), p); }
 
         size_type max_size() const noexcept
-        { inner_alloc a; return inner_traits::max_size(a); }
+        { return inner_traits::max_size(inner()); }
 
         allocator_type select_on_container_copy_construction(const allocator_type& rhs)
         { return rhs; }
 
         template<typename U>
-        friend bool operator==(default_init_allocator const&, rebind_alloc<U> const&)
-        { return inner_alloc() == rebind_inner<U>(); }
+        friend bool operator==(default_init_allocator const& l, rebind_alloc<U> const&)
+        { return l.inner() == rebind_inner<U>(); }
 
         template<typename U>
         friend bool operator!=(default_init_allocator const& l, rebind_alloc<U> const& r)
