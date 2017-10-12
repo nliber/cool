@@ -3,6 +3,17 @@
 
 #include <memory>
 
+///////////////////////////////////////////////////////////////////////////////
+// default_init_allocator
+//
+//  An allocator which default initializes (as opposed to value initializes)
+//  its members when construct(T*) is called.
+//
+// Template parameters:
+//  T - the value_type for the allocations
+//  A - the underlying stateless allocator to call on all other operations
+//      (defaults to std::allocator<T>)
+///////////////////////////////////////////////////////////////////////////////
 namespace cool
 {
     template<typename T, typename A = std::allocator<T>>
@@ -71,7 +82,7 @@ namespace cool
 
         template<typename U>
         friend bool operator==(default_init_allocator const&, rebind_alloc<U> const&)
-        { return inner_alloc{} == rebind_inner<U>{}; }
+        { return inner_alloc() == rebind_inner<U>(); }
 
         template<typename U>
         friend bool operator!=(default_init_allocator const& l, rebind_alloc<U> const& r)
