@@ -47,6 +47,9 @@ namespace cool
         template<typename U>
         using rebind_alloc                           = default_init_allocator<U, rebind_inner<U>>;
 
+        template<typename U>
+        struct rebind { using other = rebind_alloc<U>; };
+
         default_init_allocator() noexcept = default;
         default_init_allocator(default_init_allocator const&) noexcept = default;
 
