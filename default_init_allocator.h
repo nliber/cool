@@ -71,7 +71,7 @@ namespace cool
 
         template<typename U>
         friend bool operator==(default_init_allocator const&, rebind_alloc<U> const&)
-        { return inner_alloc{} == typename rebind_alloc<U>::inner_alloc{}; }
+        { return inner_alloc{} == rebind_inner<U>{}; }
 
         template<typename U>
         friend bool operator!=(default_init_allocator const& l, rebind_alloc<U> const& r)
