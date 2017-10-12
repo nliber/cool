@@ -25,15 +25,6 @@ namespace cool
         class default_init_allocator_base : A
         {
         protected:
-            using inner_alloc = A;
-
-            default_init_allocator_base() noexcept = default;
-
-            template<typename... Ts>
-            default_init_allocator_base(Ts&&... ts)
-            : A(std::forward<Ts>(ts)...)
-            {}
-
             A      & inner()       noexcept { return *this; }
             A const& inner() const noexcept { return *this; }
         };
@@ -42,15 +33,6 @@ namespace cool
         class default_init_allocator_base<A, std::enable_if_t<std::is_final_v<A>>>
         {
         protected:
-            using inner_alloc = A;
-
-            default_init_allocator_base() noexcept = default;
-
-            template<typename... Ts>
-            default_init_allocator_base(Ts&&... ts)
-            : a(std::forward<Ts>(ts)...)
-            {}
-
             A      & inner()       noexcept { return a; }
             A const& inner() const noexcept { return a; }
 
@@ -64,8 +46,7 @@ namespace cool
     {
         static_assert(std::is_empty_v<A>);
 
-        using inner_alloc  = A;
-        using inner_traits = std::allocator_traits<inner_alloc>;
+        using inner_traits = std::allocator_traits<A>;
 
         template<typename U>
         using rebind_inner = typename inner_traits::template rebind_alloc<U>;
@@ -74,15 +55,16 @@ namespace cool
 
     public:
         using allocator_type                         = default_init_allocator;
-        using value_type                             = T;
 
         using pointer                                = typename inner_traits::pointer;
         using const_pointer                          = typename inner_traits::const_pointer;
         using void_pointer                           = typename inner_traits::void_pointer;
         using const_void_pointer                     = typename inner_traits::const_void_pointer;
 
-        using difference_type                        = typename inner_traits::difference_type;
+        using value_type                             = T;
+
         using size_type                              = typename inner_traits::size_type;
+        using difference_type                        = typename inner_traits::difference_type;
 
         using propagate_on_container_copy_assignment = typename inner_traits::propagate_on_container_copy_assignment;
         using propagate_on_container_move_assignment = typename inner_traits::propagate_on_container_move_assignment;
@@ -90,7 +72,8 @@ namespace cool
         using is_always_equal                        = typename inner_traits::is_always_equal;
 
         template<typename U>
-        using rebind_alloc                           = default_init_allocator<U, rebind_inner<U>>;
+        //using rebind_alloc                           = default_init_allocator<U, rebind_inner<U>>;
+        using rebind_alloc                           = default_init_allocator<U, typename inner_traits::template rebind_alloc<U>>;
 
         template<typename U>
         struct rebind { using other = rebind_alloc<U>; };
