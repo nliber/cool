@@ -18,6 +18,27 @@ namespace cool
 {
     namespace detail
     {
+        template<typename T, typename = void>
+        struct ebo_wrapper : private T
+        {
+            using value_type = T;
+
+            constexpr T const& get() const noexcept { return *this; }
+            constexpr T      & get()       noexcept { return *this; }
+        };
+
+        template<typename T>
+        struct ebo_wrapper<T, std::enable_if_t<std::is_final_v<T>>>
+        {
+            using value_type = T;
+
+            constexpr T const& get() const noexcept { return m_t; }
+            constexpr T      & get()       noexcept { return m_t; }
+
+        private:
+            T m_t;
+        };
+
         // allocator_base is to use aggregation for final
         //  allocators vs. private inheritance for non-final allocators,
         //  the latter to take advantage of EBO
