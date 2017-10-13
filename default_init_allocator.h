@@ -58,7 +58,7 @@ namespace cool
                 return *this;
             }
 
-            constexpr friend swap(allocator_base& l, allocator_base& r)
+            constexpr friend void swap(allocator_base& l, allocator_base& r)
             {
                 if constexpr(typename traits::propagate_on_container_swap{})
                 {
