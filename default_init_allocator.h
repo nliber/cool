@@ -22,7 +22,9 @@ namespace cool
         template<typename T, typename = void>
         struct ebo_wrapper : private T
         {
-            using value_type = T;
+            using value_type      = T;
+            using reference       = T&;
+            using const_reference = T const&;
 
             constexpr ebo_wrapper() = default;
             constexpr ebo_wrapper(T const& t) noexcept(noexcept(T(t)))            : T(t)            {}
@@ -31,17 +33,23 @@ namespace cool
             constexpr ebo_wrapper& operator=(T const& t) noexcept(noexcept(ebo_wrapper::ref() = t))            { ref() = t; return *this; }
             constexpr ebo_wrapper& operator=(T&& t)      noexcept(noexcept(ebo_wrapper::ref() = std::move(t))) { ref() = std::move(t); return *this; }
 
-            constexpr T const& ref() const noexcept { return *this; }
-            constexpr T      & ref()       noexcept { return *this; }
+            constexpr operator T const&    () const noexcept { return *this; }
+            constexpr operator T      &    ()       noexcept { return *this; }
+            constexpr          T const& ref() const noexcept { return *this; }
+            constexpr          T      & ref()       noexcept { return *this; }
         };
 
         template<typename T>
         struct ebo_wrapper<T, std::enable_if_t<std::is_final_v<T>>>
         {
-            using value_type = T;
+            using value_type      = T;
+            using reference       = T&;
+            using const_reference = T const&;
 
-            constexpr T const& ref() const noexcept { return m_t; }
-            constexpr T      & ref()       noexcept { return m_t; }
+            constexpr operator T const&    () const noexcept { return m_t; }
+            constexpr operator T      &    ()       noexcept { return m_t; }
+            constexpr          T const& ref() const noexcept { return m_t; }
+            constexpr          T      & ref()       noexcept { return m_t; }
 
             constexpr ebo_wrapper() = default;
             constexpr ebo_wrapper(T const& t) noexcept(noexcept(m_t(t)))            : m_t(t) {}
