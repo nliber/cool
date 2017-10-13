@@ -18,13 +18,21 @@ namespace cool
 {
     namespace detail
     {
+        // TODO move to cool::ebo_wrapper
         template<typename T, typename = void>
         struct ebo_wrapper : private T
         {
             using value_type = T;
 
-            constexpr T const& get() const noexcept { return *this; }
-            constexpr T      & get()       noexcept { return *this; }
+            constexpr ebo_wrapper() = default;
+            constexpr ebo_wrapper(T const& t) noexcept(noexcept(T(t)))            : T(t)            {}
+            constexpr ebo_wrapper(T&& t)      noexcept(noexcept(T(std::move(t)))) : T(std::move(t)) {}
+
+            constexpr ebo_wrapper& operator=(T const& t) noexcept(noexcept(ebo_wrapper::ref() = t))            { ref() = t; return *this; }
+            constexpr ebo_wrapper& operator=(T&& t)      noexcept(noexcept(ebo_wrapper::ref() = std::move(t))) { ref() = std::move(t); return *this; }
+
+            constexpr T const& ref() const noexcept { return *this; }
+            constexpr T      & ref()       noexcept { return *this; }
         };
 
         template<typename T>
@@ -32,8 +40,15 @@ namespace cool
         {
             using value_type = T;
 
-            constexpr T const& get() const noexcept { return m_t; }
-            constexpr T      & get()       noexcept { return m_t; }
+            constexpr T const& ref() const noexcept { return m_t; }
+            constexpr T      & ref()       noexcept { return m_t; }
+
+            constexpr ebo_wrapper() = default;
+            constexpr ebo_wrapper(T const& t) noexcept(noexcept(m_t(t)))            : m_t(t) {}
+            constexpr ebo_wrapper(T&& t)      noexcept(noexcept(m_t(std::move(t)))) : m_t(std::move(t)) {}
+
+            constexpr ebo_wrapper& operator=(T const& t) noexcept(noexcept(ebo_wrapper::ref() = t))            { ref() = t; return *this; }
+            constexpr ebo_wrapper& operator=(T&& t)      noexcept(noexcept(ebo_wrapper::ref() = std::move(t))) { ref() = std::move(t); return *this; }
 
         private:
             T m_t;
@@ -42,23 +57,26 @@ namespace cool
         // allocator_base is to use aggregation for final
         //  allocators vs. private inheritance for non-final allocators,
         //  the latter to take advantage of EBO
-        template<typename A, typename = void>
-        class allocator_base : A
+        //
+        //  TODO make allocator_base meet all the allocator requirements
+        //  and maybe rename it to cool::ebo_allocator?
+        template<typename A>
+        class allocator_base : ebo_wrapper<A>
         {
             using traits = std::allocator_traits<A>;
         protected:
-            constexpr A      & inner()       noexcept { return *this; }
-            constexpr A const& inner() const noexcept { return *this; }
+            constexpr A      & inner()       noexcept { return ebo_wrapper<A>::ref(); }
+            constexpr A const& inner() const noexcept { return ebo_wrapper<A>::ref(); }
 
             template<typename... Args>
             constexpr allocator_base(Args&&... args)
-            : A(std::forward<Args>(args)...)
+            : ebo_wrapper<A>(std::forward<Args>(args)...)
             {}
 
             constexpr allocator_base() noexcept = default;
 
             constexpr allocator_base(allocator_base const& that) noexcept
-            : A(traits::select_on_container_copy_construction(that.inner()))
+            : ebo_wrapper<A>(traits::select_on_container_copy_construction(that.inner()))
             {}
 
             constexpr allocator_base(allocator_base&& that) noexcept
@@ -100,16 +118,6 @@ namespace cool
             { return !(l == r); }
         };
 
-        template<typename A>
-        class allocator_base<A, std::enable_if_t<std::is_final_v<A>>>
-        {
-        protected:
-            constexpr A      & inner()       noexcept { return a; }
-            constexpr A const& inner() const noexcept { return a; }
-
-        private:
-            A a;
-        };
     } // detail namespace
 
     template<typename T, typename A = std::allocator<T>>
@@ -191,7 +199,6 @@ namespace cool
     };
 
 } // cool namespace
-
 
 #endif /* COOL_DEFAULT_INIT_ALLOCATOR_H_ */
 
