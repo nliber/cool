@@ -24,9 +24,59 @@ namespace cool
         template<typename A, typename = void>
         class allocator_base : A
         {
+            using traits = std::allocator_traits<A>;
         protected:
             constexpr A      & inner()       noexcept { return *this; }
             constexpr A const& inner() const noexcept { return *this; }
+
+            template<typename... Args>
+            constexpr allocator_base(Args&&... args)
+            : A(std::forward<Args>(args)...)
+            {}
+
+            constexpr allocator_base() noexcept = default;
+
+            constexpr allocator_base(allocator_base const& that) noexcept
+            : A(traits::select_on_container_copy_construction(that.inner()))
+            {}
+
+            constexpr allocator_base(allocator_base&& that) noexcept
+            : A(std::move(that.inner()))
+            {}
+
+            constexpr allocator_base& operator=(allocator_base const& that) noexcept
+            {
+                if constexpr(typename traits::propagate_on_container_copy_assignment{})
+                    inner() = that.inner();
+                return *this;
+            }
+
+            constexpr allocator_base& operator=(allocator_base&& that) noexcept
+            {
+                if constexpr(typename traits::propagate_on_container_move_assignment{})
+                    inner() = std::move(that.inner());
+                return *this;
+            }
+
+            constexpr friend swap(allocator_base& l, allocator_base& r)
+            {
+                if constexpr(typename traits::propagate_on_container_swap{})
+                {
+                    using std::swap;
+                    swap(l.inner(), r.inner());
+                }
+            }
+
+            constexpr friend bool operator==(allocator_base const& l, allocator_base const& r) noexcept
+            {
+                if constexpr(typename traits::is_always_equal{})
+                    return true;
+                else
+                    return l.inner() == r.inner();
+            }
+
+            constexpr friend bool operator!=(allocator_base const& l, allocator_base const& r) noexcept
+            { return !(l == r); }
         };
 
         template<typename A>
