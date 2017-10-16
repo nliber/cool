@@ -110,6 +110,14 @@ namespace cool
         constexpr bool friend operator!=(ebo_allocator const& l, ebo_allocator const& r) noexcept
         { return !(l == r); }
 
+        template<typename U>
+        constexpr friend bool operator==(ebo_allocator const& l, typename rebind<U>::other const& r) noexcept
+        { return l.ref() == r.ref(); }
+
+        template<typename U>
+        constexpr friend bool operator!=(ebo_allocator const& l, typename rebind<U>::other const& r) noexcept
+        { return !(l == r); }
+
     };
 
 } // cool namespace
