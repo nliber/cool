@@ -3,6 +3,8 @@
 
 #include <cool/ebo_wrapper.h>
 #include <memory>
+#include <type_traits>
+#include <utility>
 
 namespace cool
 {
@@ -26,7 +28,7 @@ namespace cool
 
         using propagate_on_container_copy_assignment = typename traits::propagate_on_container_copy_assignment;
         using propagate_on_container_move_assignment = typename traits::propagate_on_container_move_assignment;
-        using propagate_on_container_swap            = typename traits::propagate_on_container_move_swap;
+        using propagate_on_container_swap            = typename traits::propagate_on_container_swap;
         using is_always_equal                        = typename traits::is_always_equal;
 
         template<typename U>
