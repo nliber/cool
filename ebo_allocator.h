@@ -9,7 +9,7 @@ namespace cool
     template<typename A>
     class ebo_allocator : private ebo_wrapper<A>
     {
-        using ebo_allocator::ref;
+        using ebo_wrapper<A>::ref;
         using traits = std::allocator_traits<A>;
 
     public:
@@ -25,7 +25,7 @@ namespace cool
         using difference_type                        = typename traits::difference_type;
 
         using propagate_on_container_copy_assignment = typename traits::propagate_on_container_copy_assignment;
-        using propagate_on_container_copy_assignment = typename traits::propagate_on_container_copy_assignment;
+        using propagate_on_container_move_assignment = typename traits::propagate_on_container_move_assignment;
         using propagate_on_container_swap            = typename traits::propagate_on_container_move_swap;
         using is_always_equal                        = typename traits::is_always_equal;
 
@@ -50,7 +50,7 @@ namespace cool
         : ebo_wrapper<A>(traits::select_on_copy_container_construction(that.ref()))
         {}
 
-        constexpr ebo_allocator& operator=(ebo_allocation const& that) noexcept
+        constexpr ebo_allocator& operator=(ebo_allocator const& that) noexcept
         {
             if constexpr(propagate_on_container_copy_assignment{})
                 ref() = that.ref();
@@ -58,7 +58,7 @@ namespace cool
             return *this;
         }
 
-        constexpr ebo_allocator& operator=(allocator_base&& that) noexcept
+        constexpr ebo_allocator& operator=(ebo_allocator&& that) noexcept
         {
             if constexpr(propagate_on_container_move_assignment{})
                 ref() = std::move(that.ref());
@@ -88,13 +88,13 @@ namespace cool
         { return traits::max_size(ref()); }
 
         template<typename... Args>
-        constexpr void construct(T* c, Args&&... args)
+        constexpr void construct(value_type* c, Args&&... args)
         { traits::construct(ref(), c, std::forward<Args>(args)...); }
 
-        constexpr void destroy(T* c)
+        constexpr void destroy(value_type* c)
         { traits::destroy(ref(), c); }
 
-        constexpr ebo_allocator select_on_container_copy_construction() const noexcept
+        constexpr ebo_allocator select_on_container_copy_construction() const
         { return ebo_allocator(traits::select_on_container_copy_construction(ref())); }
 
         constexpr bool friend operator==(ebo_allocator const& l, ebo_allocator const& r) noexcept
@@ -111,7 +111,6 @@ namespace cool
     };
 
 } // cool namespace
-
 
 #endif /* COOL_EBO_ALLOCATOR_H_ */
 
