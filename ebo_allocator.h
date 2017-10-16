@@ -46,7 +46,7 @@ namespace cool
         : ebo_wrapper<A>(std::forward<U0>(u0), std::forward<U1>(u1), std::forward<Us>(us)...)
         {}
 
-        constexpr ebo_allocator(ebo_allocator const& that) noexcept
+        ebo_allocator(ebo_allocator const& that) noexcept
         : ebo_wrapper<A>(traits::select_on_copy_container_construction(that.ref()))
         {}
 
@@ -75,26 +75,26 @@ namespace cool
             }
         }
 
-        constexpr pointer allocate(size_type n)
+        pointer allocate(size_type n)
         { return traits::allocate(ref(), n); }
 
-        constexpr pointer allocate(size_type n, const_void_pointer y)
+        pointer allocate(size_type n, const_void_pointer y)
         { return traits::allocate(ref(), n, y); }
 
-        constexpr void deallocate(pointer p, size_type n)
+        void deallocate(pointer p, size_type n)
         { traits::deallocate(ref(), p, n); }
 
-        constexpr size_type max_size() const noexcept
+        size_type max_size() const noexcept
         { return traits::max_size(ref()); }
 
         template<typename... Args>
-        constexpr void construct(value_type* c, Args&&... args)
+        void construct(value_type* c, Args&&... args)
         { traits::construct(ref(), c, std::forward<Args>(args)...); }
 
-        constexpr void destroy(value_type* c)
+        void destroy(value_type* c)
         { traits::destroy(ref(), c); }
 
-        constexpr ebo_allocator select_on_container_copy_construction() const
+        ebo_allocator select_on_container_copy_construction() const
         { return ebo_allocator(traits::select_on_container_copy_construction(ref())); }
 
         constexpr bool friend operator==(ebo_allocator const& l, ebo_allocator const& r) noexcept
