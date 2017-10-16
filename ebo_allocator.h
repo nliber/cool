@@ -6,6 +6,20 @@
 #include <type_traits>
 #include <utility>
 
+///////////////////////////////////////////////////////////////////////////////
+// ebo_allocator
+//
+//  ebo_allocator is an allocator (meets the C++17 allocator requirements)
+//  which wraps another allocator.
+//
+//  The intended use is to inherit from ebo_allocator<A> and call
+//  inner_allocator() to get a reference to the held allocator.
+//
+//  Assignment, copy construction, etc. are already implemented based on the
+//  POC?A typedefs.
+//
+///////////////////////////////////////////////////////////////////////////////
+
 namespace cool
 {
     template<typename A>
@@ -13,7 +27,7 @@ namespace cool
 
     template<typename L, typename R>
     constexpr bool operator==(ebo_allocator<L> const& l, ebo_allocator<R> const& r) noexcept
-    { return l.ref() == r.ref(); }
+    { return l.inner_allocator() == r.inner_allocator(); }
 
     template<typename L, typename R>
     constexpr bool operator!=(ebo_allocator<L> const& l, ebo_allocator<R> const& r) noexcept
@@ -22,13 +36,14 @@ namespace cool
     template<typename A>
     class ebo_allocator : private ebo_wrapper<A>
     {
-        using ebo_wrapper<A>::ref;
         using traits = std::allocator_traits<A>;
 
         template<typename L, typename R>
         constexpr friend bool operator==(ebo_allocator<L> const&, ebo_allocator<R> const&) noexcept;
 
     public:
+        using inner_allocator_type                   = A;
+
         using value_type                             = typename      A::value_type;
 
         using pointer                                = typename traits::pointer;
@@ -44,6 +59,12 @@ namespace cool
         using propagate_on_container_move_assignment = typename traits::propagate_on_container_move_assignment;
         using propagate_on_container_swap            = typename traits::propagate_on_container_swap;
         using is_always_equal                        = typename traits::is_always_equal;
+
+        inner_allocator_type      & inner_allocator()       noexcept
+        { return ebo_wrapper<A>::ref(); }
+
+        inner_allocator_type const& inner_allocator() const noexcept
+        { return ebo_wrapper<A>::ref(); }
 
         template<typename U>
         struct rebind { using other = ebo_allocator<typename traits::template rebind_alloc<U>>; };
@@ -63,13 +84,13 @@ namespace cool
         {}
 
         ebo_allocator(ebo_allocator const& that) noexcept
-        : ebo_wrapper<A>(traits::select_on_copy_container_construction(that.ref()))
+        : ebo_wrapper<A>(traits::select_on_copy_container_construction(that.inner_allocator()))
         {}
 
         constexpr ebo_allocator& operator=(ebo_allocator const& that) noexcept
         {
             if constexpr(propagate_on_container_copy_assignment{})
-                ref() = that.ref();
+                inner_allocator() = that.inner_allocator();
 
             return *this;
         }
@@ -77,7 +98,7 @@ namespace cool
         constexpr ebo_allocator& operator=(ebo_allocator&& that) noexcept
         {
             if constexpr(propagate_on_container_move_assignment{})
-                ref() = std::move(that.ref());
+                inner_allocator() = std::move(that.inner_allocator());
 
             return *this;
         }
@@ -87,38 +108,38 @@ namespace cool
             if constexpr(propagate_on_container_swap{})
             {
                 using std::swap;
-                swap(l.ref(), r.ref());
+                swap(l.inner_allocator(), r.inner_allocator());
             }
         }
 
         pointer allocate(size_type n)
-        { return traits::allocate(ref(), n); }
+        { return traits::allocate(inner_allocator(), n); }
 
         pointer allocate(size_type n, const_void_pointer y)
-        { return traits::allocate(ref(), n, y); }
+        { return traits::allocate(inner_allocator(), n, y); }
 
         void deallocate(pointer p, size_type n)
-        { traits::deallocate(ref(), p, n); }
+        { traits::deallocate(inner_allocator(), p, n); }
 
         size_type max_size() const noexcept
-        { return traits::max_size(ref()); }
+        { return traits::max_size(inner_allocator()); }
 
         template<typename... Args>
         void construct(value_type* c, Args&&... args)
-        { traits::construct(ref(), c, std::forward<Args>(args)...); }
+        { traits::construct(inner_allocator(), c, std::forward<Args>(args)...); }
 
         void destroy(value_type* c)
-        { traits::destroy(ref(), c); }
+        { traits::destroy(inner_allocator(), c); }
 
         ebo_allocator select_on_container_copy_construction() const
-        { return ebo_allocator(traits::select_on_container_copy_construction(ref())); }
+        { return ebo_allocator(traits::select_on_container_copy_construction(inner_allocator())); }
 
         constexpr friend bool operator==(ebo_allocator const& l, ebo_allocator const& r) noexcept
         {
             if constexpr(is_always_equal{})
                 return true;
             else
-                return l.ref() == r.ref();
+                return l.inner_allocator() == r.inner_allocator();
         }
 
         constexpr friend bool operator!=(ebo_allocator const& l, ebo_allocator const& r) noexcept

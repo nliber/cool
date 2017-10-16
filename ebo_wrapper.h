@@ -4,11 +4,28 @@
 #include <type_traits>
 #include <utility>
 
+///////////////////////////////////////////////////////////////////////////////
+// ebo_wrapper
+//
+//  ebo_wrapper is a wrapper which uses private inheritance where it can and
+//  aggregation where it must.  It's key benefit is to provide a consistent
+//  interface regardless of which implementation is used.
+//
+//  The intended use is to privately inherit from ebo_wrapper<T> and call
+//  ref() to get a reference to the held T.
+//
+//  cool::detail::ebo_wrapper takes two template parameters, the second of
+//  which should always be void and is used to SFINAE private inheritance vs.
+//  aggregation implementations.
+//
+//  cool::ebo_wrapper only takes one template parameter.
+//
+///////////////////////////////////////////////////////////////////////////////
+
 namespace cool
 {
     namespace detail
     {
-
         template<typename T, typename = void>
         struct ebo_wrapper
         : private T
@@ -33,9 +50,6 @@ namespace cool
 
             constexpr reference       ref()       noexcept { return *this; }
             constexpr const_reference ref() const noexcept { return *this; }
-
-            constexpr operator       reference()       noexcept { return *this; }
-            constexpr operator const_reference() const noexcept { return *this; }
         };
         
         template<typename T>
@@ -61,9 +75,6 @@ namespace cool
 
             constexpr reference       ref()       noexcept { return m_t; }
             constexpr const_reference ref() const noexcept { return m_t; }
-
-            constexpr operator       reference()       noexcept { return m_t; }
-            constexpr operator const_reference() const noexcept { return m_t; }
 
         private:
             T m_t;
