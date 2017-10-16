@@ -9,10 +9,24 @@
 namespace cool
 {
     template<typename A>
+    class ebo_allocator;
+
+    template<typename L, typename R>
+    constexpr bool operator==(ebo_allocator<L> const& l, ebo_allocator<R> const& r) noexcept
+    { return l.ref() == r.ref(); }
+
+    template<typename L, typename R>
+    constexpr bool operator!=(ebo_allocator<L> const& l, ebo_allocator<R> const& r) noexcept
+    { return !(l == r); }
+
+    template<typename A>
     class ebo_allocator : private ebo_wrapper<A>
     {
         using ebo_wrapper<A>::ref;
         using traits = std::allocator_traits<A>;
+
+        template<typename L, typename R>
+        constexpr friend bool operator==(ebo_allocator<L> const&, ebo_allocator<R> const&) noexcept;
 
     public:
         using value_type                             = typename      A::value_type;
@@ -99,7 +113,7 @@ namespace cool
         ebo_allocator select_on_container_copy_construction() const
         { return ebo_allocator(traits::select_on_container_copy_construction(ref())); }
 
-        constexpr bool friend operator==(ebo_allocator const& l, ebo_allocator const& r) noexcept
+        constexpr friend bool operator==(ebo_allocator const& l, ebo_allocator const& r) noexcept
         {
             if constexpr(is_always_equal{})
                 return true;
@@ -107,15 +121,7 @@ namespace cool
                 return l.ref() == r.ref();
         }
 
-        constexpr bool friend operator!=(ebo_allocator const& l, ebo_allocator const& r) noexcept
-        { return !(l == r); }
-
-        template<typename U>
-        constexpr friend bool operator==(ebo_allocator const& l, typename rebind<U>::other const& r) noexcept
-        { return l.ref() == r.ref(); }
-
-        template<typename U>
-        constexpr friend bool operator!=(ebo_allocator const& l, typename rebind<U>::other const& r) noexcept
+        constexpr friend bool operator!=(ebo_allocator const& l, ebo_allocator const& r) noexcept
         { return !(l == r); }
 
     };
