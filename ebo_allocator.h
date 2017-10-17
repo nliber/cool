@@ -84,7 +84,7 @@ namespace cool
         {}
 
         ebo_allocator(ebo_allocator const& that) noexcept
-        : ebo_wrapper<A>(traits::select_on_copy_container_construction(that.inner_allocator()))
+        : ebo_wrapper<A>(traits::select_on_container_copy_construction(that.inner_allocator()))
         {}
 
         constexpr ebo_allocator& operator=(ebo_allocator const& that) noexcept
