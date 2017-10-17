@@ -50,6 +50,9 @@ namespace cool
 
             constexpr reference       ref()       noexcept { return *this; }
             constexpr const_reference ref() const noexcept { return *this; }
+
+            constexpr operator       reference()       noexcept { return *this; }
+            constexpr operator const_reference() const noexcept { return *this; }
         };
         
         template<typename T>
@@ -75,6 +78,9 @@ namespace cool
 
             constexpr reference       ref()       noexcept { return m_t; }
             constexpr const_reference ref() const noexcept { return m_t; }
+
+            constexpr operator       reference()       noexcept { return m_t; }
+            constexpr operator const_reference() const noexcept { return m_t; }
 
         private:
             T m_t;
