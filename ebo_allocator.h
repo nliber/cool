@@ -41,6 +41,9 @@ namespace cool
         template<typename L, typename R>
         constexpr friend bool operator==(ebo_allocator<L> const&, ebo_allocator<R> const&) noexcept;
 
+        template<typename U>
+        friend class ebo_allocator;
+
     public:
         using inner_allocator_type                   = A;
 
@@ -69,12 +72,27 @@ namespace cool
         template<typename U>
         struct rebind { using other = ebo_allocator<typename traits::template rebind_alloc<U>>; };
 
+        template<typename U>
+        using other = typename rebind<U>::other;
+
+        // Constructors
+
         constexpr ebo_allocator() = default;
 
         template<typename U, typename = std::enable_if_t<!std::is_convertible_v<U, ebo_allocator>>>
         constexpr ebo_allocator(U&& u)
         noexcept(noexcept(ebo_wrapper<A>(std::forward<U>(u))))
         : ebo_wrapper<A>(std::forward<U>(u))
+        {}
+
+        template<typename U>
+        constexpr ebo_allocator(ebo_allocator<U> const& that) noexcept
+        : ebo_wrapper<A>(that.inner_allocator())
+        {}
+
+        template<typename U>
+        constexpr ebo_allocator(ebo_allocator<U>&& that) noexcept
+        : ebo_wrapper<A>(std::move(that.inner_allocator()))
         {}
 
         template<typename U0, typename U1, typename... Us>
