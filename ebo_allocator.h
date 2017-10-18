@@ -38,11 +38,11 @@ namespace cool
     {
         using traits = std::allocator_traits<A>;
 
-        template<typename L, typename R>
-        constexpr friend bool operator==(ebo_allocator<L> const&, ebo_allocator<R> const&) noexcept;
-
         template<typename U>
         friend class ebo_allocator;
+
+        template<typename L, typename R>
+        friend constexpr bool operator==(ebo_allocator<L> const&, ebo_allocator<R> const&) noexcept;
 
     public:
         using inner_allocator_type                   = A;
@@ -151,10 +151,10 @@ namespace cool
 
         constexpr friend bool operator==(ebo_allocator const& l, ebo_allocator const& r) noexcept
         {
-            if constexpr(is_always_equal{})
-                return true;
-            else
+            if constexpr(!is_always_equal{})
                 return l.inner_allocator() == r.inner_allocator();
+            else
+                return true;
         }
 
         constexpr friend bool operator!=(ebo_allocator const& l, ebo_allocator const& r) noexcept
