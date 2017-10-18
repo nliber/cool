@@ -72,9 +72,6 @@ namespace cool
         template<typename U>
         struct rebind { using other = ebo_allocator<typename traits::template rebind_alloc<U>>; };
 
-        template<typename U>
-        using other = typename rebind<U>::other;
-
         // Constructors
 
         constexpr ebo_allocator() = default;
