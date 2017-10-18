@@ -35,7 +35,9 @@ namespace cool
         friend class default_init_allocator;
 
         template<typename LT, typename LA, typename RT, typename RA>
-        constexpr friend bool operator==(default_init_allocator<LT, LA> const&, default_init_allocator<RT, RA> const&) noexcept;
+        friend constexpr bool operator==(default_init_allocator<LT, LA> const&, default_init_allocator<RT, RA> const&) noexcept;
+
+        using ebo_allocator<A>::inner_allocator;
 
     public:
         using typename ebo_allocator<A>::pointer;
@@ -55,9 +57,9 @@ namespace cool
 
         default_init_allocator() = default;
 
-        template<typename U>
-        default_init_allocator(typename rebind<U>::other that)
-        : ebo_allocator<A>(std::move(that))
+        template<typename TT, typename AA>
+        default_init_allocator(default_init_allocator<TT, AA> const& that)
+        : ebo_allocator<A>(that.inner_allocator())
         {}
 
         using ebo_allocator<A>::allocate;
