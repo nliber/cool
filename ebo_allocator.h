@@ -76,12 +76,6 @@ namespace cool
 
         constexpr ebo_allocator() = default;
 
-        template<typename U, typename = std::enable_if_t<!std::is_convertible_v<U, ebo_allocator>>>
-        constexpr ebo_allocator(U&& u)
-        noexcept(noexcept(ebo_wrapper<A>(std::forward<U>(u))))
-        : ebo_wrapper<A>(std::forward<U>(u))
-        {}
-
         template<typename U>
         constexpr ebo_allocator(ebo_allocator<U> const& that) noexcept
         : ebo_wrapper<A>(that.inner_allocator())
@@ -92,14 +86,14 @@ namespace cool
         : ebo_wrapper<A>(std::move(that.inner_allocator()))
         {}
 
-        template<typename U0, typename U1, typename... Us>
-        constexpr ebo_allocator(U0&& u0, U1&& u1, Us&&... us)
-        noexcept(noexcept(ebo_wrapper<A>(std::forward<U0>, std::forward<U1>, std::forward<Us>(us)...)))
-        : ebo_wrapper<A>(std::forward<U0>(u0), std::forward<U1>(u1), std::forward<Us>(us)...)
-        {}
-
         ebo_allocator(ebo_allocator const& that) noexcept
         : ebo_wrapper<A>(traits::select_on_container_copy_construction(that.inner_allocator()))
+        {}
+
+        template<typename... Us, typename = std::enable_if_t<std::is_constructible_v<A, Us...>>>
+        constexpr ebo_allocator(Us&&... us)
+        noexcept(noexcept(A(std::forward<Us>(us)...)))
+        : ebo_wrapper<A>(std::forward<Us>(us)...)
         {}
 
         constexpr ebo_allocator& operator=(ebo_allocator const& that) noexcept
