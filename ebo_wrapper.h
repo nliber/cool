@@ -38,18 +38,10 @@ namespace cool
             using reference       = T      &;
             using const_reference = T const&;
 
-            constexpr ebo_wrapper() = default;
-
-            template<typename U, typename = std::enable_if_t<!std::is_convertible_v<U, ebo_wrapper>>>
-            constexpr ebo_wrapper(U&& u)
-            noexcept(noexcept(T(std::forward<U>(u))))
-            : m_t(std::forward<U>(u))
-            {}
-
-            template<typename U0, typename U1, typename... Us>
-            constexpr ebo_wrapper(U0&& u0, U1&& u1, Us&&... us)
-            noexcept(noexcept(T(std::forward<U0>, std::forward<U1>, std::forward<Us>(us)...)))
-            : m_t(std::forward<U0>(u0), std::forward<U1>(u1), std::forward<Us>(us)...)
+            template<typename... Us, typename = std::enable_if_t<std::is_constructible_v<T, Us...>>>
+            constexpr ebo_wrapper(Us&&... us)
+            noexcept(noexcept(T(std::forward<Us>(us)...)))
+            : m_t(std::forward<Us>(us)...)
             {}
 
             constexpr reference       ref()       noexcept { return m_t; }
@@ -80,18 +72,10 @@ namespace cool
             using reference       = T      &;
             using const_reference = T const&;
 
-            constexpr ebo_wrapper() = default;
-
-            template<typename U, typename = std::enable_if_t<!std::is_convertible_v<U, ebo_wrapper>>>
-            constexpr ebo_wrapper(U&& u)
-            noexcept(noexcept(T(std::forward<U>(u))))
-            : T(std::forward<U>(u))
-            {}
-
-            template<typename U0, typename U1, typename... Us>
-            constexpr ebo_wrapper(U0&& u0, U1&& u1, Us&&... us)
-            noexcept(noexcept(T(std::forward<U0>, std::forward<U1>, std::forward<Us>(us)...)))
-            : T(std::forward<U0>(u0), std::forward<U1>(u1), std::forward<Us>(us)...)
+            template<typename... Us, typename = std::enable_if_t<std::is_constructible_v<T, Us...>>>
+            constexpr ebo_wrapper(Us&&... us)
+            noexcept(noexcept(T(std::forward<Us>(us)...)))
+            : T(std::forward<Us>(us)...)
             {}
 
             constexpr reference       ref()       noexcept { return *this; }
