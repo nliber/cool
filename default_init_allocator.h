@@ -69,16 +69,10 @@ namespace cool
         : ebo_alloc(std::move(that.inner_allocator()))
         {}
 
-        template<typename U, typename = std::enable_if_t<!std::is_convertible_v<U, ebo_allocator>>>
-        constexpr default_init_allocator(U&& u)
-        noexcept(noexcept(ebo_alloc(std::forward<U>(u))))
-        : ebo_alloc(std::forward<U>(u))
-        {}
-
-        template<typename U0, typename U1, typename... Us>
-        constexpr default_init_allocator(U0&& u0, U1&& u1, Us... us)
-        noexcept(noexcept(ebo_alloc(std::forward<U0>(u0), std::forward<U1>(u1), std::forward<Us>(us)...)))
-        : ebo_alloc(std::forward<U0>(u0), std::forward<U1>(u1), std::forward<Us>(us)...)
+        template<typename... Us, typename = std::enable_if_t<std::is_constructible_v<A, Us...>>>
+        constexpr default_init_allocator(Us&&... us)
+        noexcept(noexcept(A(std::forward<Us>(us)...)))
+        : ebo_alloc(std::forward<Us>(us)...)
         {}
 
         using ebo_alloc::allocate;
