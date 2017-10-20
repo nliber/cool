@@ -23,26 +23,10 @@
 namespace cool
 {
     template<typename A>
-    class ebo_allocator;
-
-    template<typename L, typename R>
-    constexpr bool operator==(ebo_allocator<L> const& l, ebo_allocator<R> const& r) noexcept
-    { return l.inner_allocator() == r.inner_allocator(); }
-
-    template<typename L, typename R>
-    constexpr bool operator!=(ebo_allocator<L> const& l, ebo_allocator<R> const& r) noexcept
-    { return !(l == r); }
-
-    template<typename A>
     class ebo_allocator : private ebo_wrapper<A>
     {
-        using traits = std::allocator_traits<A>;
-
-        template<typename U>
-        friend class ebo_allocator;
-
-        template<typename L, typename R>
-        friend constexpr bool operator==(ebo_allocator<L> const&, ebo_allocator<R> const&) noexcept;
+        using wrapper = ebo_wrapper<A>;
+        using traits  = std::allocator_traits<A>;
 
     public:
         using inner_allocator_type                   = A;
@@ -64,10 +48,10 @@ namespace cool
         using is_always_equal                        = typename traits::is_always_equal;
 
         inner_allocator_type      & inner_allocator()       noexcept
-        { return ebo_wrapper<A>::ref(); }
+        { return wrapper::ref(); }
 
         inner_allocator_type const& inner_allocator() const noexcept
-        { return ebo_wrapper<A>::ref(); }
+        { return wrapper::ref(); }
 
         template<typename U>
         struct rebind { using other = ebo_allocator<typename traits::template rebind_alloc<U>>; };
@@ -78,22 +62,22 @@ namespace cool
 
         template<typename U>
         constexpr ebo_allocator(ebo_allocator<U> const& that) noexcept
-        : ebo_wrapper<A>(that.inner_allocator())
+        : wrapper(that.inner_allocator())
         {}
 
         template<typename U>
         constexpr ebo_allocator(ebo_allocator<U>&& that) noexcept
-        : ebo_wrapper<A>(std::move(that.inner_allocator()))
+        : wrapper(std::move(that.inner_allocator()))
         {}
 
         ebo_allocator(ebo_allocator const& that) noexcept
-        : ebo_wrapper<A>(traits::select_on_container_copy_construction(that.inner_allocator()))
+        : wrapper(traits::select_on_container_copy_construction(that.inner_allocator()))
         {}
 
         template<typename... Us, typename = std::enable_if_t<std::is_constructible_v<A, Us...>>>
         constexpr ebo_allocator(Us&&... us)
         noexcept(noexcept(A(std::forward<Us>(us)...)))
-        : ebo_wrapper<A>(std::forward<Us>(us)...)
+        : wrapper(std::forward<Us>(us)...)
         {}
 
         constexpr ebo_allocator& operator=(ebo_allocator const& that) noexcept
@@ -155,6 +139,14 @@ namespace cool
         { return !(l == r); }
 
     };
+
+    template<typename L, typename R>
+    constexpr bool operator==(ebo_allocator<L> const& l, ebo_allocator<R> const& r) noexcept
+    { return l.inner_allocator() == r.inner_allocator(); }
+
+    template<typename L, typename R>
+    constexpr bool operator!=(ebo_allocator<L> const& l, ebo_allocator<R> const& r) noexcept
+    { return !(l == r); }
 
 } // cool namespace
 
