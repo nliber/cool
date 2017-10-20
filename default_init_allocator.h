@@ -39,9 +39,11 @@ namespace cool
         friend constexpr bool operator==(default_init_allocator<LT, LA> const&, default_init_allocator<RT, RA> const&) noexcept;
 
         using ebo_alloc = ebo_allocator<A>;
-        using ebo_alloc::inner_allocator;
 
     public:
+        using typename ebo_alloc::inner_allocator_type;
+        using ebo_alloc::inner_allocator;
+
         using typename ebo_alloc::pointer;
         using typename ebo_alloc::const_pointer;
         using typename ebo_alloc::void_pointer;
