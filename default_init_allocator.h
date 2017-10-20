@@ -6,7 +6,8 @@
 #include <cool/ebo_allocator.h>
 
 ///////////////////////////////////////////////////////////////////////////////
-// default_init_allocator
+//
+// default_init_allocator<T, A>
 //
 //  An allocator which default initializes (as opposed to value initializes)
 //  its members when construct(T*) is called.
@@ -15,6 +16,20 @@
 //  T - the value_type for the allocations
 //  A - the underlying stateless allocator to call on all other operations
 //      (defaults to std::allocator<T>)
+//
+///////////////////////////////////////////////////////////////////////////////
+//
+// default_init_vector<T, A>
+//
+//  An alias template for std::vector which uses default initialization
+//  (instead of the typical value initialization) for default constructed
+//  elements.
+//
+//  Template parameters:
+//  T - the value_type stored in the vector
+//  A - the underlying allocator to call on all operations besides default
+//      construction (defaults to std::allocator<T>)
+//
 ///////////////////////////////////////////////////////////////////////////////
 namespace cool
 {
@@ -82,6 +97,10 @@ namespace cool
     template<typename LT, typename LA, typename RT, typename RA>
     constexpr bool operator!=(default_init_allocator<LT, LA> const& l, default_init_allocator<RT, RA> const& r) noexcept
     { return !(l == r); }
+
+
+    template<typename T, typename A = std::allocator<T>>
+    using default_init_vector = std::vector<T, default_init_allocator<T, A>>;
 
 
 } // cool namespace
