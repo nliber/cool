@@ -32,17 +32,11 @@ namespace cool
     class default_init_allocator
     : private ebo_allocator<A>
     {
-        template<typename TT, typename AA>
-        friend class default_init_allocator;
-
-        template<typename LT, typename LA, typename RT, typename RA>
-        friend constexpr bool operator==(default_init_allocator<LT, LA> const&, default_init_allocator<RT, RA> const&) noexcept;
-
         using ebo_alloc = ebo_allocator<A>;
 
     public:
         using typename ebo_alloc::inner_allocator_type;
-        using ebo_alloc::inner_allocator;
+        using          ebo_alloc::inner_allocator;
 
         using typename ebo_alloc::pointer;
         using typename ebo_alloc::const_pointer;
