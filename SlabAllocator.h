@@ -122,15 +122,17 @@ public:
     memory_resource_pointer get_memory_resource() const noexcept
     { return m_slabmemoryresource; }
 
-    friend bool operator==(SlabAllocator const& l, SlabAllocator const& r) noexcept
-    { return l.m_slabmemoryresource == r.m_slabmemoryresource; }
-
-    friend bool operator!=(SlabAllocator const& l, SlabAllocator const& r) noexcept
-    { return !(l == r); }
-
 private:
     memory_resource_pointer m_slabmemoryresource;
 };
+
+template<typename L, typename R>
+bool operator==(SlabAllocator<L> const& l, SlabAllocator<R> const& r) noexcept
+{ return l.get_memory_resource() == r.get_memory_resource(); }
+
+template<typename L, typename R>
+bool operator!=(SlabAllocator<L> const& l, SlabAllocator<R> const& r) noexcept
+{ return !(l == r); }
 
 } // cool namespace
 
