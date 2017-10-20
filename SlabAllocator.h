@@ -123,7 +123,7 @@ public:
     { return m_slabmemoryresource; }
 
     friend bool operator==(SlabAllocator const& l, SlabAllocator const& r) noexcept
-    { return *l.m_slabmemoryresource == *r.m_slabmemoryresource; }
+    { return l.m_slabmemoryresource == r.m_slabmemoryresource; }
 
     friend bool operator!=(SlabAllocator const& l, SlabAllocator const& r) noexcept
     { return !(l == r); }
