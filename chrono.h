@@ -50,7 +50,7 @@ namespace duration {
 
 namespace system_clock
 {
-    inline auto now()
+    inline std::array<char, sizeof "Thu, 12 Aug 1965 12:59:00 -0500"> now()
     {
         std::chrono::system_clock::time_point tp{std::chrono::system_clock::now()};
         std::time_t                           timeT{std::chrono::system_clock::to_time_t(tp)};
