@@ -24,8 +24,38 @@ namespace cool
         using clock    = Clock;
         using duration = typename clock::duration;
 
+        explicit Stopwatch(bool run = false) noexcept
+        : m_start{run ? clock::now() : time_point{}}
+        {}
+
+        bool isRunning() const noexcept
+        { return m_start != time_point{}; }
+
         duration lap() const noexcept
-        { return clock::now() - start; }
+        { return isRunning() ? clock::now() - m_start : m_since; }
+
+        operator duration() const noexcept
+        { return lap(); }
+
+        void reset(bool run = false) noexcept
+        { *this = Stopwatch{run}; }
+
+        void start() noexcept
+        {
+            if (!isRunning())
+            {
+                m_start = clock::now() - m_since;
+                m_since = duration::zero();
+            }
+        }
+
+        void stop() noexcept
+        {
+            // No need to check isRunning(), because if we aren't running,
+            // these assignments effectively don't change their value
+            m_since = lap();
+            m_start = time_point{};
+        }
 
         friend std::ostream& operator<<(std::ostream& os, Stopwatch const& that)
         {
@@ -35,11 +65,12 @@ namespace cool
 
     private:
         using time_point = typename clock::time_point;
-        time_point start = clock::now();
+        time_point m_start{};
+        duration   m_since = duration::zero();
     };
 
 #if __cplusplus >= 201703L
-    Stopwatch() -> Stopwatch<>;
+    Stopwatch(bool) -> Stopwatch<>;
 #endif  // C++17
 
 } // cool namespace
