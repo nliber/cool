@@ -43,8 +43,8 @@ namespace cool
         {
             assert(2 <= base && base <= 36);
 
-            bool       isnegative{i < I{}};
-            unsigned_t u{isnegative ? unsigned_t(-i) : unsigned_t(i)};
+            bool       negative{i < I{}};
+            unsigned_t u{negative ? -i : i};
 
             m_c_str_array[m_pos] = '\0';
             do
@@ -53,7 +53,7 @@ namespace cool
                 u /= m_base;
             } while (u);
 
-            if (isnegative)
+            if (negative)
                 m_c_str_array[--m_pos] = '-';
         }
 
@@ -78,7 +78,7 @@ namespace cool
         { return std::string_view(data(), size()); }
 
     private:
-        using c_str_array_t = std::array<char, max_size() + 1>;
+        using c_str_array_t = std::array<char, max_size() + sizeof('\0')>;
         using unsigned_t = std::make_unsigned_t<I>;
 
         c_str_array_t m_c_str_array;
