@@ -1,5 +1,5 @@
-#ifndef COOL2_TO_CSTRING_H_
-#define COOL2_TO_CSTRING_H_
+#ifndef COOL_TO_CSTRING_H_
+#define COOL_TO_CSTRING_H_
 
 #include <algorithm>    // copy
 #include <array>
@@ -15,7 +15,7 @@
 #include <type_traits>
 #include <utility>      // swap
 
-namespace cool2
+namespace cool
 {
     template<typename...>
     class to_cstring;
@@ -265,8 +265,8 @@ namespace cool2
 
     explicit to_cstring(const char*) -> to_cstring<const char*>;
 
-}  // cool2 namespace
+}  // cool namespace
 
 
-#endif /* COOL2_TO_CSTRING_H_ */
+#endif /* COOL_TO_CSTRING_H_ */
 
