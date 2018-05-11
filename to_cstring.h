@@ -1,6 +1,8 @@
 #ifndef COOL_TO_CSTRING_H_
 #define COOL_TO_CSTRING_H_
 
+#include <boost/uuid/uuid.hpp>
+
 #include <algorithm>    // copy
 #include <array>
 #include <cassert>
@@ -158,7 +160,7 @@ namespace cool
         { return !(l < r); }
 
         // swap
-        friend void swap(to_cstring& l, to_cstring& r)
+        friend void swap(to_cstring& l, to_cstring& r) noexcept
         {
             // l.m_cstring[l.m_pos..pos) are the chars to be copied from l to r
             // r.m_cstring[r.m_pos..pos) are the chars to be copied from r to l
@@ -175,7 +177,7 @@ namespace cool
             swap(l.m_pos, r.m_pos);
         }
 
-        void swap(to_cstring& that)
+        void swap(to_cstring& that) noexcept
         {
             using std::swap;
             swap(*this, that);
@@ -264,6 +266,117 @@ namespace cool
     };
 
     explicit to_cstring(const char*) -> to_cstring<const char*>;
+
+
+    template<>
+    class to_cstring<boost::uuids::uuid>
+    {
+    public:
+        // types
+        using value_type                      = char;
+        using traits_type                     = std::char_traits<value_type>;
+        using pointer                         = value_type*;
+        using const_pointer                   = const value_type*;
+        using reference                       = value_type&;
+        using const_reference                 = const value_type&;
+        using const_iterator                  = const_pointer;
+        using iterator                        = const_iterator;
+        using const_reverse_iterator          = std::reverse_iterator<const_iterator>;
+        using reverse_iterator                = const_reverse_iterator;
+        using size_type                       = std::size_t;
+        using difference_type                 = std::ptrdiff_t;
+        static const constexpr size_type npos = static_cast<size_type>(-1);
+
+        using element_type                    = boost::uuids::uuid;
+
+        // public constructors
+        explicit to_cstring(element_type const& id)
+        {
+            cstring_type::iterator out{m_cstring.begin()};
+            uint_fast16_t          dashes{0b1010101000};
+            for (uint8_t uc : id)
+            {
+                *out++ = "0123456789abcdef"[uc / 16];
+                *out++ = "0123456789abcdef"[uc % 16];
+                if (1 & dashes)
+                    *out++ = '-';
+                dashes >>= 1;
+            }
+            *out = '\0';
+        }
+
+        // iterator support
+        const_iterator         begin()   const noexcept { return m_cstring.begin(); }
+        const_iterator         end()     const noexcept { return m_cstring.end() - 1; }
+        const_iterator         cbegin()  const noexcept { return begin(); }
+        const_iterator         cend()    const noexcept { return end(); }
+        const_reverse_iterator rbegin()  const noexcept { return const_reverse_iterator{end()}; }
+        const_reverse_iterator rend()    const noexcept { return const_reverse_iterator{begin()}; }
+        const_reverse_iterator crbegin() const noexcept { return rbegin(); }
+        const_reverse_iterator crend()   const noexcept { return rend(); }
+
+        // capacity
+        static constexpr size_type size()     noexcept { return max_size(); }
+        static constexpr size_type length()   noexcept { return size(); }
+        static constexpr bool      empty()    noexcept { return false; }
+        static constexpr size_type max_size() noexcept { return cstring_type{}.max_size() - sizeof('\0'); }
+
+        // element access
+        const_reference operator[](size_type pos) const          { return m_cstring[pos]; }
+        const_reference at(size_type pos)         const          { return m_cstring.at(pos); }
+        const_reference front()                   const noexcept { return m_cstring.front(); }
+        const_reference back()                    const noexcept { return m_cstring[max_size() - 1]; }
+
+        // string operations
+        const_pointer   data()             const noexcept { return begin(); }
+        const_pointer   c_str()            const noexcept { return begin(); }
+        operator        std::string_view() const noexcept { return std::string_view{data(), size()}; }
+
+        // comparisons
+        // Note:  these do string comparisons, not numeric comparisons
+        friend bool operator==(to_cstring const& l, to_cstring const& r) noexcept
+        { return std::equal(l.begin(), l.end(), r.begin(), r.end()); }
+
+        friend bool operator!=(to_cstring const& l, to_cstring const& r) noexcept
+        { return !(l == r); }
+
+        friend bool operator<(to_cstring const& l, to_cstring const& r) noexcept
+        { return std::lexicographical_compare(l.begin(), l.end(), r.begin(), r.end()); }
+
+        friend bool operator>(to_cstring const& l, to_cstring const& r) noexcept
+        { return r < l; }
+
+        friend bool operator<=(to_cstring const& l, to_cstring const& r) noexcept
+        { return !(r < l); }
+
+        friend bool operator>=(to_cstring const& l, to_cstring const& r) noexcept
+        { return !(l < r); }
+
+        // swap
+        friend void swap(to_cstring& l, to_cstring& r) noexcept
+        {
+            using std::swap;
+            swap(l.m_cstring, r.m_cstring);
+        }
+
+        void swap(to_cstring& that) noexcept
+        {
+            using std::swap;
+            swap(*this, that);
+        }
+
+        // We can stream this even if it isn't a temporary
+        friend std::ostream& operator<<(std::ostream& os, to_cstring const& that)
+        { return os << that.c_str(); }
+
+    private:
+        // cstring_type is large enough to hold max_size() chars and the trailing '\0'
+        using cstring_type = std::array<char, element_type::static_size() * 2 + sizeof("----")>;
+
+        cstring_type m_cstring;
+    };
+
+    explicit to_cstring(boost::uuids::uuid const&) -> to_cstring<boost::uuids::uuid>;
 
 }  // cool namespace
 
