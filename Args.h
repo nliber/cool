@@ -28,6 +28,16 @@ namespace cool
         {
         }
 
+        explicit Args(std::initializer_list<const char*> il)
+            : Args{ std::vector<std::string>{il.begin(), il.end()} }
+        {
+        }
+
+        explicit Args(std::initializer_list<std::string> il)
+            : Args{ std::vector<std::string>{il.begin(), il.end()} }
+        {
+        }
+
         explicit Args(int c, const char*const v[])
             : Args{ v, v + c }
         {
