@@ -9,6 +9,7 @@
 #include <iomanip>
 #include <ios>
 #include <iterator>
+#include <optional>
 #include <ostream>
 #include <string>
 #include <string_view>
@@ -45,6 +46,14 @@ namespace cool
 
         template<typename T>
         struct has_ostream_inserter<T, std::void_t<decltype(operator<<(std::declval<std::ostream&>(), std::declval<T>()))>>
+        : std::true_type {};
+
+        template<typename T>
+        struct is_optional
+        : std::false_type {};
+
+        template<typename T>
+        struct is_optional<std::optional<T>>
         : std::true_type {};
 
     }
@@ -97,6 +106,14 @@ namespace cool
 
                 os << '}';
             }, data());
+        }
+
+        void Optional() const
+        {
+            if (data())
+                os() << "1[" << cool::Out{*data()} << ']';
+            else
+                os() << "0[]";
         }
 
         void OStreamInsert() const
@@ -205,6 +222,8 @@ namespace cool
                 Range();
             else if constexpr(type_traits::is_tuple_like<value_type>{})
                 TupleLike();
+            else if constexpr(type_traits::is_optional<noncv_type>{})
+                Optional();
             else
                 PrettyName();
         }
