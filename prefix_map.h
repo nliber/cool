@@ -5,6 +5,7 @@
 #include <boost/container/flat_map.hpp>
 #include <cool/iless_range.h>
 #include <type_traits>
+#include <cool/Out.h>
 
 namespace cool
 {
@@ -58,6 +59,9 @@ namespace cool
 
               iterator find_by_prefix(key_type const& key)
         { return find_by_prefix(*this, key); }
+
+        friend std::ostream& operator<<(std::ostream& os, prefix_map const& that)
+        { return os << cool::Out<prefix_map, true>(that); }
 
     private:
         // Helper function that abstracts away const vs non-const iterators
