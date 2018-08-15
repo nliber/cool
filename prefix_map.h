@@ -57,13 +57,6 @@ namespace cool
             return *this;
         }
 
-        const_iterator find_by_prefix(key_type const& key) const
-        { return find_by_prefix(*this, key); }
-
-              iterator find_by_prefix(key_type const& key)
-        { return find_by_prefix(*this, key); }
-
-
         template<typename K>
         std::pair<const_iterator, const_iterator> equal_prefix(K const& key) const
         { return equal_prefix(*this, key); }
@@ -109,7 +102,7 @@ namespace cool
 
             key_compare comp = that.key_comp();
 
-            // if !(key < lb->first), they are equal
+            // If !(key < lb->first), they are equal
             return std::pair{lb, that.end() != lb && !comp(key, lb->first)
                            ? lb + 1
                            : std::find_if(lb, that.end(), [&](value_type const& kv)
@@ -120,41 +113,26 @@ namespace cool
         //  if there in an exact match, then that particular element
         //  otherwise, if there is exactly one prefix match, then that particular element
         //
-        // O(P + log K)
-        //  log K - looking up the key / first possible prefix match
-        //  P     - iterating through all the matching prefixes until the first one that doesn't match
+        // O(log K) - looking up the key / first possible prefix match
         template<typename PrefixMap, typename K>
         static auto /* [const_]iterator */ find_prefix(PrefixMap& that, K const& key)
         {
-            std::pair ep = equal_prefix(that, key);
-            return 1 == ep.second - ep.first ? ep.first : that.end();
-        }
-
-        // Helper function that abstracts away const vs non-const iterators
-        // with templates and auto type deduction
-        //
-        // TODO explore making this O(log n):
-        // I think lower_bound returns either an exact match or the element
-        // just before the two prefixes to check
-        //
-        // TODO handle is_transparent
-        template<typename PrefixMap>
-        static auto /* [const_]iterator */ find_by_prefix(PrefixMap& that, key_type const& key)
-        {
-            // If there is an exact match, return it
-            auto found = that.find(key);
-            if (that.end() != found)
-                return found;
+            // If lb != end(), !(lb->first < key)
+            auto lb = that.lower_bound(key);
+            if (that.end() == lb)
+                return lb;
 
             key_compare comp = that.key_comp();
+
+            // If !(key < lb->first), they are equal
+            if (!comp(key, lb->first))
+                return lb;
+
             auto is_prefix = [&](value_type const& kv)
             { return boost::istarts_with(kv.first, key, comp.get_locale()); };
 
-            // If there is exactly one prefix match, return it
-            // The empty() check is for the degenerate case when size() == 1, as an empty key prefix-matches everything
-            found = std::find_if(that.begin(), that.end(), is_prefix);
-            if (that.end() != found && that.end() == std::find_if(found + 1, that.end(), is_prefix) && !std::empty(key))
-                return found;
+            if (is_prefix(*lb) && (that.end() == lb + 1 || !is_prefix(*(lb + 1))))
+                return lb;
 
             return that.end();
         }
