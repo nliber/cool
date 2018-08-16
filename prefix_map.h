@@ -7,8 +7,6 @@
 #include <type_traits>
 #include <cool/Out.h>
 
-#include <iostream>
-
 namespace cool
 {
     ///////////////////////////////////////////////////////////////////////////
@@ -17,6 +15,16 @@ namespace cool
     //
     //  This is similar to gdb commands and is useful when parsing things
     //  users directly type in (command line, input, etc.)
+    //
+    //  This adds three member functions to flat_map:
+    //      [const_]iterator                         find_prefix(K const& key)
+    //      pair<[const_]iterator, [const_]iterator> equal_prefix(K const& key)
+    //      size_type                                count_prefix(K const& key)
+    //
+    //  As well as an ostream inserter
+    //
+    //  The new member functions are O(log K) with respect to looking up the
+    //  first potential matching key
     ///////////////////////////////////////////////////////////////////////////
     template<typename Key, typename Value>
     class prefix_map : public boost::container::flat_map<Key, Value, iless_range>
@@ -102,7 +110,7 @@ namespace cool
 
             key_compare comp = that.key_comp();
 
-            // If !(key < lb->first), they are equal
+            // If !(key < lb->first), they are equal and an exact match
             return std::pair{lb, that.end() != lb && !comp(key, lb->first)
                            ? lb + 1
                            : std::find_if(lb, that.end(), [&](value_type const& kv)
@@ -120,11 +128,11 @@ namespace cool
             // If lb != end(), !(lb->first < key)
             auto lb = that.lower_bound(key);
             if (that.end() == lb)
-                return lb;
+                return that.end();
 
             key_compare comp = that.key_comp();
 
-            // If !(key < lb->first), they are equal
+            // If !(key < lb->first), they are equal and an exact match
             if (!comp(key, lb->first))
                 return lb;
 
