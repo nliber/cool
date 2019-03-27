@@ -11,7 +11,7 @@
 // produces the following error messages of the form:
 //
 //  StaticAssertHelpers.h: error: invalid use of incomplete type ‘struct AssertEqual<Expected<long unsigned int, 2ul>, Actual<long unsigned int, 1ul> >’
-//  StaticAssertHelpers.h: error: declaration of ‘struct AssertEqual<vampire::Expected<long unsigned int, 2ul>, Actual<long unsigned int, 1ul> >’
+//  StaticAssertHelpers.h: error: declaration of ‘struct AssertEqual<Expected<long unsigned int, 2ul>, Actual<long unsigned int, 1ul> >’
 //
 //  YourFile.cpp: error: ‘struct AssertSizeof<char, 2ul>’ used where a ‘bool’ was expected
 //
