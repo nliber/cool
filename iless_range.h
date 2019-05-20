@@ -8,7 +8,7 @@
 namespace cool
 {
     ///////////////////////////////////////////////////////////////////////////
-    // iless_range is a comparison class which lexicographicall compares two
+    // iless_range is a comparison class which lexicographically compares two
     //  container-like objects without regards to case
     ///////////////////////////////////////////////////////////////////////////
     struct iless_range : private iless_char

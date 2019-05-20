@@ -5,6 +5,60 @@
 #include <ostream>
 #include <type_traits>
 
+///////////////////////////////////////////////////////////////////////////////
+// Enum
+//
+//  This header adds common operations to enums, in one of two ways:
+//      (1) traits
+//      (2) macros
+//
+//  Enum traits
+//      Specializing these traits to add the following operators to the
+//      global namespace for a given enum E:
+//
+//      enum_unary_plus         +e          (returns underlying_type_t<E>)
+//      enum_not                !e          (returns bool)
+//      enum_stream_inserter    ostrm << e  (returns ostream&)
+//
+//      enum_compl              ~e          (returns E)
+//      enum_bitand             e1 & e2     (returns E)
+//      enum_and_eq             e1 &= e2    (returns E&)
+//      enum_bitor              e1 | e2     (returns E)
+//      enum_or_eq              e1 |= e2    (returns E&)
+//      enum_xor                e1 ^ e2     (returns E)
+//      enum_xor_eq             e1 ^= e2    (returns E&)
+//
+//      enum_ops                Implicit opt-in:
+//                                  +e, !e, ostrm << e
+//
+//      enum_bit_ops            Implicit opt-in:
+//                                  enum_ops, ~e,
+//                                  e1 & e2, e1 &= e2,
+//                                  e1 | e2, e1 |= e2,
+//                                  e1 ^ e2, e1 ^= e2
+//
+//      All traits are implicitly opt-out.  To explicitly opt-in:
+//          template<> struct cool::enum_some_trait<E> : std::true_type {};
+//
+//      If you have implicitly opted into a trait
+//      (by explicitly opting in to either enum_ops or enum_bit_ops),
+//      you can explicitly opt-out of the ones you don't want by:
+//          template<> struct cool::enum_some_trait<E> : std::false_type {};
+//
+//
+//  Enum macros
+//      Call one of these macros to add the following operators to the
+//      current namespace for a given enum E:
+//
+//      COOL_ENUM_OPS(E)        +e, !e, ostrm << e
+//
+//      COOL_ENUM_BIT_OPS(E)    +e, !e, ostrm << e, ~e,
+//                              e1 & e2, e1 &= e2,
+//                              e1 | e2, e1 |= e2,
+//                              e1 ^ e2, e1 ^= e2
+//
+///////////////////////////////////////////////////////////////////////////////
+
 namespace cool
 {
     template<typename E>
