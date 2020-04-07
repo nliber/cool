@@ -12,6 +12,12 @@ namespace cool
     //  (static) type passed into it, after the top level const/volatile
     //  qualifiers are removed.
     //
+    //  template<typename T>
+    //  pretty_name make_pretty_name()
+    //  is a function template that explicitly creates a pretty_name for the
+    //  type T specified.  Useful for typedefs inside classes or other cases
+    //  where no object is available
+    //
     // pretty_type
     //  pretty_type is a class that encapsulates the human readable name of the
     //  deduced (static) type passed to it, keeping the top level
@@ -47,6 +53,14 @@ namespace cool
         : pretty_name{t}
         {}
     };
+
+    template<typename T>
+    constexpr pretty_name make_pretty_name() noexcept
+    {
+        pretty_name pn{static_cast<T*>(nullptr)};
+        pn.remove_suffix((' ' == pn[pn.size() - 2]) + sizeof '*');
+        return pn;
+    }
 
     class pretty_type : public std::string_view
     {
