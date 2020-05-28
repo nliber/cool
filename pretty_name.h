@@ -22,10 +22,10 @@ namespace cool
     //
     // pretty_ref
     //
-    //  template<typename T> prettylref(T&&)
+    //  template<typename T> pretty_lref(T&&)
     //  pretty_lref is a function template that encapsulates the human readable
     //  name of the (static) type deduced.  The result is always
-    //  reference-qualified.
+    //  reference-qualified.  This is how forwarding references deduce.
     //
     // pretty_lref
     //
