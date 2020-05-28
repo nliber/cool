@@ -19,6 +19,13 @@ namespace cool
     //  pretty_type is a function template that encapsulates the human readable
     //  name of the type specified.
     //
+    // pretty_ref
+    //
+    //  template<typename T> prettylref(T&&)
+    //  pretty_lref is a function template that encapsulates the human readable
+    //  name of the (static) type deduced.  The result is always
+    //  reference-qualified.
+    //
     // pretty_lref
     //
     //  template<typename T> pretty_lref(T&&)
@@ -61,6 +68,10 @@ namespace cool
     template<typename T>
     constexpr pretty_type_t pretty_lref(T&&) noexcept
     { return pretty_type<T>(); }
+
+    template<typename T>
+    constexpr pretty_type_t pretty_ref(T&& t) noexcept
+    { return pretty_type<decltype(std::forward<T>(t))>(); }
 
     template<typename T>
     constexpr pretty_type_t pretty_name(const volatile T&) noexcept
