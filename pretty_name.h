@@ -2,6 +2,7 @@
 #define COOL_PRETTY_NAME_H_
 
 #include <string_view>
+#include <type_traits>
 
 namespace cool
 {
@@ -20,6 +21,10 @@ namespace cool
     //  make_pretty_name are function templates that creates a pretty_name for
     //  the type T specified or deduced.  When specified, useful for typedefs
     //  inside classes or other cases where no object is available.
+    //
+    //  Note:  unlike pretty_name, make_pretty_name will not strip
+    //  const/volatile when the type is *specified*.  It will, however,
+    //  still strip references.
     //
     // pretty_type
     //
@@ -61,7 +66,7 @@ namespace cool
     template<typename T>
     constexpr pretty_name make_pretty_name() noexcept
     {
-        pretty_name pn{static_cast<T*>(nullptr)};
+        pretty_name pn{static_cast<std::remove_reference_t<T>*>(nullptr)};
         pn.remove_suffix((' ' == pn[pn.size() - 2]) + sizeof '*');
         return pn;
     }
