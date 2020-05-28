@@ -15,8 +15,7 @@ namespace cool
     // make_pretty_name
     //
     //  template<typename T> make_pretty_name()
-    //  template<typename T> make_pretty_name(const volatile T&)
-    //  template<typename T> make_pretty_name(const volatile T&&)
+    //  template<typename T> make_pretty_name(T&&)
     //
     //  make_pretty_name are function templates that creates a pretty_name for
     //  the type T specified or deduced.  When specified, useful for typedefs
@@ -68,16 +67,8 @@ namespace cool
     }
 
     template<typename T>
-    constexpr pretty_name make_pretty_name(const volatile T& t) noexcept
-    {
-        return pretty_name(t);
-    }
-
-    template<typename T>
-    constexpr pretty_name make_pretty_name(const volatile T&& t) noexcept
-    {
-        return pretty_name(t);
-    }
+    constexpr pretty_name make_pretty_name(T&& t) noexcept
+    { return pretty_name(t); }
 
     class pretty_type : public std::string_view
     {
