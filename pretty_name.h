@@ -27,9 +27,12 @@ namespace cool
     //
     // pretty_type
     //
-    //  pretty_type is a class that encapsulates the human readable name of the
-    //  deduced (static) type passed to it, keeping the top level
-    //  const/volatile qualifier and an "&" at the end for l-value references.
+    //  pretty_type is a function template which returns a pretty_type_t
+    //  that encapsulates the human readable name of the
+    //  specified or deduced type passed to it, keeping the top level
+    //  const/volatile qualifiers and reference qualifieers.
+    //
+    //  Note:  when the type is deduced, r-values have no reference specifiers.
     //
     ///////////////////////////////////////////////////////////////////////////
     
@@ -74,36 +77,28 @@ namespace cool
     constexpr pretty_name make_pretty_name(T&& t) noexcept
     { return make_pretty_name<T>(); }
 
-    class pretty_type : public std::string_view
+
+    class pretty_type_t : public std::string_view
     {
-        template<typename T>
-        static auto
-        constexpr sizeof_ptpf(T&&) noexcept
-        {
-            return sizeof __PRETTY_FUNCTION__ - sizeof "static auto sizeof_ptpf" + sizeof "pretty_type";
+        explicit constexpr pretty_type_t(const char* pf) noexcept
+        : std::string_view{pf}
+        { 
+            constexpr std::string_view pattern{"T = "};
+            remove_prefix(find(pattern) + pattern.size());
+            remove_suffix(sizeof ']');
         }
 
-        static auto
-        constexpr offset_name() noexcept
-        {
-            return sizeof_ptpf(0) - sizeof "int]";
-        }
-
-    public:
         template<typename T>
-        constexpr pretty_type(T&&) noexcept
-        : std::string_view{       __PRETTY_FUNCTION__ + offset_name(),
-                           sizeof __PRETTY_FUNCTION__ - offset_name() - sizeof "]"}
-        {}
+        friend constexpr pretty_type_t pretty_type() noexcept;
     };
 
     template<typename T>
-    constexpr pretty_type make_pretty_type() noexcept
-    {
-        pretty_type pt{static_cast<T*>(nullptr)};
-        pt.remove_suffix((' ' == pt[pt.size() - 2]) + sizeof '*');
-        return pt;
-    }
+    constexpr pretty_type_t pretty_type() noexcept
+    { return pretty_type_t(__PRETTY_FUNCTION__); }
+
+    template<typename T>
+    constexpr pretty_type_t pretty_type(T&&) noexcept
+    { return pretty_type<T>(); }
 
 } // cool namespace
 
