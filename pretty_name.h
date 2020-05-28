@@ -11,20 +11,19 @@ namespace cool
     //
     //  pretty_name is a class that encapsulates the human readable name of the
     //  (static) type passed into it, after the top level const/volatile
-    //  qualifiers are removed.
+    //  and refrence qualifiers are removed.
     //
     // make_pretty_name
     //
     //  template<typename T> make_pretty_name()
     //  template<typename T> make_pretty_name(T&&)
     //
-    //  make_pretty_name are function templates that creates a pretty_name for
+    //  make_pretty_name is a function template that creates a pretty_name for
     //  the type T specified or deduced.  When specified, useful for typedefs
     //  inside classes or other cases where no object is available.
     //
     //  Note:  unlike pretty_name, make_pretty_name will not strip
-    //  const/volatile when the type is *specified*.  It will, however,
-    //  still strip references.
+    //  top-level const/volatile.  It will still strip reference qualifiers.
     //
     // pretty_type
     //
@@ -73,7 +72,7 @@ namespace cool
 
     template<typename T>
     constexpr pretty_name make_pretty_name(T&& t) noexcept
-    { return pretty_name(t); }
+    { return make_pretty_name<T>(); }
 
     class pretty_type : public std::string_view
     {
