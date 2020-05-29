@@ -41,53 +41,60 @@ namespace cool
     //
     //  This is primarily used to show how forwarding references are deduced.
     //
-    // pretty_type_t
-    // 
-    //  pretty_type_t is a concrete class publicly derived from string_view
-    //  which the pretty_* function templates return.
-    //
-    //  It is necessary because starting with gcc10 alias templates such as
-    //  string_view are also expanded as part of __PRETTY_FUNCTION__ and
-    //  would make parsing __PRETTY_FUNCTION__ more complicated and the
-    //  __PRETTY_FUNCTION__ strings stored in the binary even bigger.
-    //
-    //  Unlike string_view in general, pretty_type_t never can hold a dangling
-    //  reference, as the __PRETTY_FUNCTION__ strings have program lifetime.
     ///////////////////////////////////////////////////////////////////////////
     
-    class pretty_type_t : public std::string_view
+    namespace detail
     {
-        explicit constexpr pretty_type_t(const char* pf) noexcept
-        : std::string_view{pf}
-        { 
-            constexpr std::string_view pattern{"T = "};
-            remove_prefix(find(pattern) + pattern.size());
-            remove_suffix(sizeof ']');
-        }
-
+        ///////////////////////////////////////////////////////////////////////
+        // pretty_fn<T>
+        //
+        //  Helper function to return __PRETTY_FUNCTION__ containing
+        //  "T = type".  This is necessary because starting with gcc10 template
+        //  aliases are also expanded in __PRETTY_FUNCTION__, so it would
+        //  be more complicated to return a string_view than a const char*
+        ///////////////////////////////////////////////////////////////////////
         template<typename T>
-        friend constexpr pretty_type_t pretty_type() noexcept;
-    };
+        constexpr const char* pretty_fn() noexcept
+        { return __PRETTY_FUNCTION__; }
+
+        ///////////////////////////////////////////////////////////////////////
+        // pretty_type_sv
+        //
+        //  Helper function to parse the result of pretty_fn<T>() for the human
+        //  readable name for T.
+        ///////////////////////////////////////////////////////////////////////
+        inline constexpr std::string_view pretty_type_sv(const char* pf) noexcept
+        {
+            std::string_view pt(pf);
+
+            constexpr std::string_view pattern{"T = "};
+            pt.remove_prefix(pt.find(pattern) + pattern.size());
+            pt.remove_suffix(sizeof ']');
+
+            return pt;
+        }
+    } // detail namespace
+
 
     template<typename T>
-    constexpr pretty_type_t pretty_type() noexcept
-    { return pretty_type_t(__PRETTY_FUNCTION__); }
+    constexpr std::string_view pretty_type() noexcept
+    { return detail::pretty_type_sv(detail::pretty_fn<T>()); }
 
     template<typename T>
-    constexpr pretty_type_t pretty_lref(T&&) noexcept
-    { return pretty_type<T>(); }
+    constexpr std::string_view pretty_lref(T&&) noexcept
+    { return detail::pretty_type_sv(detail::pretty_fn<T>()); }
 
     template<typename T>
-    constexpr pretty_type_t pretty_ref(T&& t) noexcept
-    { return pretty_type<decltype(std::forward<T>(t))>(); }
+    constexpr std::string_view pretty_ref(T&& t) noexcept
+    { return detail::pretty_type_sv(detail::pretty_fn<decltype(std::forward<T>(t))>()); }
 
     template<typename T>
-    constexpr pretty_type_t pretty_name(const volatile T&) noexcept
-    { return pretty_type<T>(); }
+    constexpr std::string_view pretty_name(const volatile T&) noexcept
+    { return detail::pretty_type_sv(detail::pretty_fn<T>()); }
 
     template<typename T>
-    constexpr pretty_type_t pretty_name(const volatile T&&) noexcept
-    { return pretty_type<T>(); }
+    constexpr std::string_view pretty_name(const volatile T&&) noexcept
+    { return detail::pretty_type_sv(detail::pretty_fn<T>()); }
 
 } // cool namespace
 
