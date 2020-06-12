@@ -20,9 +20,6 @@ namespace cool
     //  pretty_type is a function template that encapsulates the human readable
     //  name of the type specified.
     //
-    //  In conjunction with the pretty_type_t constructor, pretty_type does the
-    //  work for all the rest of the function templates.
-    //
     // pretty_ref
     //
     //  template<typename T> pretty_ref(T&&)
@@ -51,7 +48,8 @@ namespace cool
         //  Helper function to return __PRETTY_FUNCTION__ containing
         //  "T = type".  This is necessary because starting with gcc10 template
         //  aliases are also expanded in __PRETTY_FUNCTION__, so it would
-        //  be more complicated to return a string_view than a const char*
+        //  be more complicated to return a string_view (which is really
+        //  basic_string_view<char, char_traits<char>>) than a const char*
         ///////////////////////////////////////////////////////////////////////
         template<typename T>
         constexpr const char* pretty_fn() noexcept
