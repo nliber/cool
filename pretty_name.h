@@ -2,7 +2,6 @@
 #define COOL_PRETTY_NAME_H_
 
 #include <string_view>
-#include <utility>
 
 namespace cool
 {
@@ -83,8 +82,8 @@ namespace cool
     { return detail::pretty_type_sv(detail::pretty_fn<T>()); }
 
     template<typename T>
-    constexpr std::string_view pretty_ref(T&& t) noexcept
-    { return detail::pretty_type_sv(detail::pretty_fn<decltype(std::forward<T>(t))>()); }
+    constexpr std::string_view pretty_ref(T&&) noexcept
+    { return detail::pretty_type_sv(detail::pretty_fn<T&&>()); }
 
     template<typename T>
     constexpr std::string_view pretty_name(const volatile T&) noexcept
