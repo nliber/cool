@@ -17,7 +17,7 @@ namespace cool
     //
     ///////////////////////////////////////////////////////////////////////////
     template<typename T>
-    void is_trivially_copyable()
+    constexpr void is_trivially_copyable() noexcept
     {
         static_assert(std::is_trivially_copyable<T>::value,
                      "not trivially copyable");
