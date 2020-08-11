@@ -19,11 +19,6 @@ namespace cool
     template<typename T>
     constexpr void is_trivially_copyable() noexcept
     {
-        // Both clang and gcc have a bug where they don't take into account
-        // the trivial, non-deleted destructor
-        constexpr bool tc = std::is_trivially_copyable<T>::value &&
-                            std::is_trivially_destructible<T>::value;
-
         constexpr bool cc = std::is_copy_constructible<T>::value;
         constexpr bool mc = std::is_move_constructible<T>::value;
         constexpr bool ca = std::is_copy_assignable<T>::value;
@@ -38,8 +33,20 @@ namespace cool
 
         constexpr bool cmca = cc || mc || ca || ma;
 
-        static_assert(std::is_trivially_copyable<T>::value,
+        constexpr bool tc = std::is_trivially_copyable<T>::value;
+        constexpr bool itc = cmca &&
+                             (tcc || !cc) &&
+                             (tmc || !mc) &&
+                             (tca || !ca) &&
+                             (tma || !ma) &&
+                             td;
+
+        static_assert(tc,
                       "not trivially copyable");
+
+        // Workaround for clang/gcc is_trivially_copyable bugs
+        static_assert(itc,
+                      "not C++17 trivially copyable");
 
         // has at least one eligible copy constructor, move constructor,
         // copy assignment operator, or move assignment operator
@@ -53,25 +60,25 @@ namespace cool
         static_assert(tcc || !cc,
                       "non-trivial copy constructor");
 
-        static_assert(cc || !cmca || tc,
+        static_assert(cc || itc || !cmca,
                       "deleted copy constructor");
 
         static_assert(tmc || !mc,
                       "non-trivial move constructor");
 
-        static_assert(mc || !cmca || tc,
+        static_assert(mc || itc || !cmca,
                       "deleted move constructor");
 
         static_assert(tca || !ca,
                       "non-trivial copy assignment operator");
 
-        static_assert(ca || !cmca || tc,
+        static_assert(ca || itc || !cmca,
                       "deleted copy assignment operator");
 
         static_assert(tma || !ma,
                       "non-trivial move assignment operator");
 
-        static_assert(ma || !cmca || tc,
+        static_assert(ma || itc || !cmca,
                       "deleted move assignment operator");
 
 
