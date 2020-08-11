@@ -67,22 +67,22 @@ namespace cool
         //each eligible copy constructor, move constructor,
         //copy assignment operator, and move assignment is trivial
 
+        // Note:  std::is_*constructible<T> returns false if the destructor
+        // is deleted, and std::is_trivially_*_constructible returns false
+        // if the destructor is non-trivial.  This is indicated in the
+        // static_assert with "possibly"
+
         static_assert(tcc || !td || !cc,
                       "non-trivial copy constructor");
 
         static_assert(tcc || td || !cc,
                       "possibly non-trivial copy constructor");
 
-#if 0
-        static_assert(cc || itc || !cmca,
-                      "deleted copy constructor");
-#else
         static_assert(cc || d,
                       "possibly deleted copy constructor");
 
         static_assert(cc || !d || itc || !cmca,
                       "deleted copy constructor");
-#endif
 
         static_assert(tmc || !td || !mc,
                       "non-trivial move constructor");
@@ -90,16 +90,11 @@ namespace cool
         static_assert(tmc || td || !mc,
                       "possibly non-trivial move constructor");
 
-#if 0
-        static_assert(mc || itc || !cmca,
-                      "deleted move constructor");
-#else
         static_assert(mc || d,
                       "possibly deleted move constructor");
 
         static_assert(mc || !d || itc || !cmca,
                       "deleted move constructor");
-#endif
 
         static_assert(tca || !ca,
                       "non-trivial copy assignment operator");
