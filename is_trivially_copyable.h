@@ -23,7 +23,7 @@ namespace cool
     //  The static_asserts will indicate that by saying that the corresponding
     //  constructors are "possibly" non-trivial/deleted.
     //
-    //  Works with C++11 or later.
+    //  Works with C++14 or later.
     //
     ///////////////////////////////////////////////////////////////////////////
     template<typename T>
