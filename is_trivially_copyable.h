@@ -78,7 +78,7 @@ namespace cool
         static_assert(tcc || td || !cc,
                       "possibly non-trivial copy constructor");
 
-        static_assert(cc || d,
+        static_assert(cc || d || !cmca,
                       "possibly deleted copy constructor");
 
         static_assert(cc || !d || itc || !cmca,
@@ -90,7 +90,7 @@ namespace cool
         static_assert(tmc || td || !mc,
                       "possibly non-trivial move constructor");
 
-        static_assert(mc || d,
+        static_assert(mc || d || !cmca,
                       "possibly deleted move constructor");
 
         static_assert(mc || !d || itc || !cmca,
