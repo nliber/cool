@@ -31,9 +31,19 @@ namespace cool
         constexpr bool tma = std::is_trivially_move_assignable<T>::value;
         constexpr bool td  = std::is_trivially_destructible<T>::value;
 
+        // has at least one eligible copy constructor, move constructor,
+        // copy assignment operator, or move assignment operator
         constexpr bool cmca = cc || mc || ca || ma;
 
         constexpr bool tc = std::is_trivially_copyable<T>::value;
+
+        // has at least one eligible copy constructor, move constructor,
+        // copy assignment operator, or move assignment operator
+        //
+        // each eligible copy constructor, move constructor,
+        // copy assignment operator, and move assignment is trivial
+        //
+        // has a trivial, non-deleted destructor
         constexpr bool itc = cmca &&
                              (tcc || !cc) &&
                              (tmc || !mc) &&
@@ -55,19 +65,41 @@ namespace cool
                       "deleted copy/move constructors/assignment operators");
 
         //each eligible copy constructor, move constructor,
-        //copy assignment operator, and move assignment
+        //copy assignment operator, and move assignment is trivial
 
-        static_assert(tcc || !cc,
+        static_assert(tcc || !td || !cc,
                       "non-trivial copy constructor");
 
+        static_assert(tcc || td || !cc,
+                      "possibly non-trivial copy constructor");
+
+#if 0
         static_assert(cc || itc || !cmca,
                       "deleted copy constructor");
+#else
+        static_assert(cc || d,
+                      "possibly deleted copy constructor");
 
-        static_assert(tmc || !mc,
+        static_assert(cc || !d || itc || !cmca,
+                      "deleted copy constructor");
+#endif
+
+        static_assert(tmc || !td || !mc,
                       "non-trivial move constructor");
 
+        static_assert(tmc || td || !mc,
+                      "possibly non-trivial move constructor");
+
+#if 0
         static_assert(mc || itc || !cmca,
                       "deleted move constructor");
+#else
+        static_assert(mc || d,
+                      "possibly deleted move constructor");
+
+        static_assert(mc || !d || itc || !cmca,
+                      "deleted move constructor");
+#endif
 
         static_assert(tca || !ca,
                       "non-trivial copy assignment operator");
