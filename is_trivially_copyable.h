@@ -11,7 +11,17 @@ namespace cool
     //  is_trivially_copyable() is a helper function when trying to debug
     //  things that aren't trivially copyable but are supposed to be.  With
     //  modern compilers, each static_assert will fire for each thing that is
-    //  wrong.
+    //  wrong or questionable if the type is not C++17 trivially copyable.
+    //
+    //  Questionable things are deleted copy/move
+    //  constructors/assignment operators unless all four are deleted
+    //
+    //  There appears to be a bug in std::is_*constructible<T> such that
+    //  if the destructor is deleted it always returns false.  There also
+    //  appears to be a bug in std::is_trivially_*_constructible<T> such that
+    //  if the destructor exists but is not trivial it always returns false.
+    //  The static_asserts will indicate that by saying that the corresponding
+    //  constructors are "possibly" non-trivial/deleted.
     //
     //  Works with C++11 or later.
     //
@@ -78,11 +88,11 @@ namespace cool
         static_assert(tcc || td || !cc,
                       "possibly non-trivial copy constructor");
 
-        static_assert(cc || d || !cmca,
-                      "possibly deleted copy constructor");
-
         static_assert(cc || !d || itc || !cmca,
                       "deleted copy constructor");
+
+        static_assert(cc || d || !cmca,
+                      "possibly deleted copy constructor");
 
         static_assert(tmc || !td || !mc,
                       "non-trivial move constructor");
@@ -90,11 +100,11 @@ namespace cool
         static_assert(tmc || td || !mc,
                       "possibly non-trivial move constructor");
 
-        static_assert(mc || d || !cmca,
-                      "possibly deleted move constructor");
-
         static_assert(mc || !d || itc || !cmca,
                       "deleted move constructor");
+
+        static_assert(mc || d || !cmca,
+                      "possibly deleted move constructor");
 
         static_assert(tca || !ca,
                       "non-trivial copy assignment operator");
