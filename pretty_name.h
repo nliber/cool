@@ -60,7 +60,7 @@ namespace cool
         //  Helper function to parse the result of pretty_fn<T>() for the human
         //  readable name for T.
         ///////////////////////////////////////////////////////////////////////
-        inline constexpr std::string_view pretty_type_sv(const char* pf) noexcept
+        inline constexpr std::string_view pretty_type_sv(const char*&& pf) noexcept
         {
             std::string_view pt(pf);
 
