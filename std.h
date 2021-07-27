@@ -1,6 +1,18 @@
 #ifndef COOL_STD_H_
 #define COOL_STD_H_
 
+///////////////////////////////////////////////////////////////////////////////
+// std.h
+//
+// This is a header than tries to include all the other C++ standard headers.
+// It should work with modern compilers of C++98, C++11, C++14, C++17, C++20
+// and C++2b.
+//
+// The purpose is when you need to write a test framework to try out some code.
+// It should NOT be used in production code, as it can slow down compilation.
+///////////////////////////////////////////////////////////////////////////////
+
+
 #include <cstdio>   // Bug workaround -- put this before <cstdlib>
 
 #include <cstdlib>
